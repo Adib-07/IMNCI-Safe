@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ImnciAssessment } from "@/lib/types";
 import { FIXTURE_UNSAFE_INCOMPLETE, FIXTURE_SAFE_COMPLETE, FIXTURE_HIGH_RISK } from "@/lib/fixtures";
+import { sanitizeInput } from "@/lib/sanitize";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "dummy" });
+
+const MAX_API_INPUT_LENGTH = 5000;
 
 const extractionSchema: Schema = {
   type: Type.OBJECT,
@@ -69,11 +72,35 @@ export async function POST(req: Request) {
   try {
     const { text, useMock } = await req.json();
 
+    // Validate and sanitize input
+    if (typeof text !== "string") {
+      return NextResponse.json(
+        { error: "Invalid input: text must be a string" },
+        { status: 400 }
+      );
+    }
+
+    const sanitizedText = sanitizeInput(text);
+
+    if (sanitizedText.length === 0) {
+      return NextResponse.json(
+        { error: "Input is empty after sanitization" },
+        { status: 400 }
+      );
+    }
+
+    if (sanitizedText.length > MAX_API_INPUT_LENGTH) {
+      return NextResponse.json(
+        { error: `Input exceeds maximum length of ${MAX_API_INPUT_LENGTH} characters` },
+        { status: 400 }
+      );
+    }
+
     if (useMock) {
-      if (text.includes("FIXTURE_SAFE")) {
+      if (sanitizedText.includes("FIXTURE_SAFE")) {
         return NextResponse.json({ assessment: FIXTURE_SAFE_COMPLETE, isFallback: true });
       }
-      if (text.includes("FIXTURE_HIGH_RISK")) {
+      if (sanitizedText.includes("FIXTURE_HIGH_RISK")) {
         return NextResponse.json({ assessment: FIXTURE_HIGH_RISK, isFallback: true });
       }
       return NextResponse.json({ assessment: FIXTURE_UNSAFE_INCOMPLETE, isFallback: true });
@@ -86,7 +113,7 @@ export async function POST(req: Request) {
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: text,
+      contents: sanitizedText,
       config: {
         systemInstruction: SYSTEM_PROMPT,
         responseMimeType: "application/json",

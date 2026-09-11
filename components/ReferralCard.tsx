@@ -17,6 +17,8 @@ interface ReferralCardProps {
   result: ProtocolResult | null;
   assessment: ImnciAssessment | null;
   isExtracting?: boolean;
+  pipelineStage?: "idle" | "input" | "extract" | "verify" | "classify";
+  onReset?: () => void;
 }
 
 const COLOR_CONFIG: Record<
@@ -26,6 +28,7 @@ const COLOR_CONFIG: Record<
     border: string;
     text: string;
     glow: string;
+    strongGlow: string;
     icon: React.ElementType;
   }
 > = {
@@ -34,6 +37,7 @@ const COLOR_CONFIG: Record<
     border: "border-pink-500/30",
     text: "text-pink-400",
     glow: "shadow-pink-500/20",
+    strongGlow: "shadow-[0_0_20px_rgba(236,72,153,0.15)]",
     icon: AlertTriangle,
   },
   YELLOW: {
@@ -41,6 +45,7 @@ const COLOR_CONFIG: Record<
     border: "border-amber-500/30",
     text: "text-amber-400",
     glow: "shadow-amber-500/20",
+    strongGlow: "shadow-[0_0_20px_rgba(245,158,11,0.15)]",
     icon: Activity,
   },
   GREEN: {
@@ -48,6 +53,7 @@ const COLOR_CONFIG: Record<
     border: "border-emerald-500/30",
     text: "text-emerald-400",
     glow: "shadow-emerald-500/20",
+    strongGlow: "shadow-[0_0_20px_rgba(16,185,129,0.15)]",
     icon: CheckCircle2,
   },
   AMBER: {
@@ -55,11 +61,16 @@ const COLOR_CONFIG: Record<
     border: "border-amber-500/30",
     text: "text-amber-400",
     glow: "shadow-amber-500/20",
+    strongGlow: "shadow-[0_0_20px_rgba(245,158,11,0.15)]",
     icon: Lock,
   },
 };
 
 function buildFiredRuleText(result: ProtocolResult, assessment: ImnciAssessment | null): string {
+  if (result.rule_description) {
+    return result.rule_description;
+  }
+
   if (result.triage_color === "PINK") {
     const reasons: string[] = [];
     const f = assessment?.facts;
@@ -164,7 +175,7 @@ function LoadingState() {
   );
 }
 
-export function ReferralCard({ result, assessment, isExtracting = false }: ReferralCardProps) {
+export function ReferralCard({ result, assessment, isExtracting = false, pipelineStage, onReset }: ReferralCardProps) {
   const [animating, setAnimating] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const prevWasBlocked = useRef(false);
@@ -200,7 +211,7 @@ export function ReferralCard({ result, assessment, isExtracting = false }: Refer
   const firedRule = buildFiredRuleText(result, assessment);
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl backdrop-blur-xl p-6 flex flex-col overflow-hidden">
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl backdrop-blur-xl p-6 flex flex-col overflow-hidden hover:border-slate-700/80 transition-colors duration-300">
       <div className="flex items-center gap-2 mb-5">
         <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -210,12 +221,12 @@ export function ReferralCard({ result, assessment, isExtracting = false }: Refer
 
       <div className="flex-1 flex flex-col">
         <div
-          className={`rounded-xl border-2 p-5 transition-all duration-300 ${
+          className={`rounded-xl border-2 p-5 transition-all duration-500 ${
             isBlocked
               ? "bg-amber-500/5 border-amber-500/30"
               : isOoc
                 ? "bg-slate-800/30 border-slate-700/50"
-                : `${cfg.bg} ${cfg.border}`
+                : `${cfg.bg} ${cfg.border} ${cfg.strongGlow}`
           } ${animating ? "animate-unlock" : ""}`}
         >
           {/* Header */}
@@ -295,6 +306,18 @@ export function ReferralCard({ result, assessment, isExtracting = false }: Refer
           {/* Classified State */}
           {!isBlocked && !isOoc && (
             <div className="space-y-3">
+              {result.rule_id && (
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[0.625rem] font-bold tracking-wider ${cfg.text} bg-current/10`}
+                    style={{ backgroundColor: `color-mix(in srgb, currentColor 10%, transparent)` }}
+                  >
+                    {result.rule_id}
+                  </span>
+                  <span className="text-[0.625rem] text-slate-500">
+                    Matched IMNCI Protocol Rule
+                  </span>
+                </div>
+              )}
               {firedRule && (
                 <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-3">
                   <p className="text-[0.625rem] font-semibold text-slate-500 mb-1 tracking-wider">
@@ -353,16 +376,54 @@ export function ReferralCard({ result, assessment, isExtracting = false }: Refer
           </div>
         )}
 
+        {/* Disclaimers */}
+        {result && (
+          <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+            <div className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
+              <div className="space-y-1">
+                <p className="text-[0.625rem] font-semibold text-emerald-400 tracking-wider">
+                  DETERMINISTIC RULE ENGINE ACTIVE
+                </p>
+                <p className="text-[0.625rem] text-slate-500">
+                  This classification was produced by a deterministic TypeScript rules engine implementing the Government of India IMNCI protocol. No AI was involved in the classification decision.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 mt-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
+              <div className="space-y-1">
+                <p className="text-[0.625rem] font-semibold text-amber-400 tracking-wider">
+                  AWAITING HUMAN VERIFICATION
+                </p>
+                <p className="text-[0.625rem] text-slate-500">
+                  This result must be confirmed by a qualified health worker before any treatment decision is made. The system never acts autonomously.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
-        <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-xs text-slate-600">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Deterministic TypeScript logic
+        <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Deterministic TypeScript logic
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Zero LLM in classification
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-600">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Zero LLM in classification
-          </div>
+          {onReset && (
+            <button
+              onClick={onReset}
+              className="text-xs font-medium text-slate-500 hover:text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 px-3 py-1.5 rounded-lg transition-all duration-200"
+            >
+              Clear / Start Over
+            </button>
+          )}
         </div>
       </div>
     </section>

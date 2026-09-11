@@ -345,6 +345,43 @@ body {
   transform: rotate(-45deg) translateY(-1px);
 }
 
+/* ── Shake animation (input validation error) ── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 50%, 90% { transform: translateX(-4px); }
+  30%, 70% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* ── Cascade enter (entity pills) ── */
+@keyframes cascade-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-cascade-enter {
+  animation: cascade-enter 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── Skeleton pulse (enhanced) ── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.animate-skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
 /* ── Hero grid background ── */
 .hero-grid {
   background-image:

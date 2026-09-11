@@ -4,6 +4,17 @@ import {
   MissingFieldRequirement 
 } from "./types";
 
+/**
+ * IMNCI Protocol Rule IDs based on Government of India IMNCI guidelines.
+ * 
+ * Rule 1A: Age validation (2-59 months cohort)
+ * Rule 2A: General Danger Signs assessment
+ * Rule 3A: Severe Pneumonia / Very Severe Disease (PINK)
+ * Rule 4A: Pneumonia - Fast breathing (YELLOW)
+ * Rule 5A: No Pneumonia - Cough or Cold (GREEN)
+ * Rule 6A: Incomplete data - Classification blocked (AMBER)
+ */
+
 export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResult {
   const { facts } = assessment;
   const missingFields: MissingFieldRequirement[] = [];
@@ -21,7 +32,9 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
       classification_name: null,
       treatment_instruction: null,
       missing_fields: [],
-      is_safe_to_refer: false
+      is_safe_to_refer: false,
+      rule_id: "IMNCI-1A",
+      rule_description: "Age outside 2-59 month cohort. IMNCI protocol not applicable."
     };
   }
 
@@ -72,7 +85,9 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
       classification_name: "CLASSIFICATION BLOCKED: Missing Data",
       treatment_instruction: "Please confirm the missing information before classification.",
       missing_fields: missingFields,
-      is_safe_to_refer: false
+      is_safe_to_refer: false,
+      rule_id: "IMNCI-6A",
+      rule_description: `Incomplete data: ${missingFields.length} required field(s) missing. Classification cannot proceed without complete clinical information.`
     };
   }
 
@@ -89,25 +104,38 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
 
   // PINK: Severe Pneumonia / Very Severe Disease
   if (anyDangerSign || anySeverePhysicalSign) {
+    const reasons: string[] = [];
+    if (gds.unable_to_drink_or_breastfeed === true) reasons.push("unable to drink/breastfeed");
+    if (gds.vomits_everything === true) reasons.push("vomits everything");
+    if (gds.has_convulsions === true) reasons.push("convulsions");
+    if (gds.lethargic_or_unconscious === true) reasons.push("lethargic/unconscious");
+    if (facts.chest_indrawing === true) reasons.push("chest indrawing");
+    if (facts.stridor_in_calm_child === true) reasons.push("stridor in calm child");
+
     return {
       status: "CLASSIFIED",
       triage_color: "PINK",
       classification_name: "SEVERE PNEUMONIA OR VERY SEVERE DISEASE",
       treatment_instruction: "Urgent referral to hospital.",
       missing_fields: [],
-      is_safe_to_refer: true
+      is_safe_to_refer: true,
+      rule_id: "IMNCI-3A",
+      rule_description: `Severe disease detected: ${reasons.join(", ")}. Any general danger sign or severe physical sign triggers PINK classification.`
     };
   }
 
   // YELLOW: Pneumonia
   if (facts.has_cough_or_difficult_breathing === true && hasFastBreathing) {
+    const threshold = typeof facts.patient_age_months === "number" && facts.patient_age_months < 12 ? 50 : 40;
     return {
       status: "CLASSIFIED",
       triage_color: "YELLOW",
       classification_name: "PNEUMONIA",
       treatment_instruction: "Outpatient medical treatment and advice.",
       missing_fields: [],
-      is_safe_to_refer: true
+      is_safe_to_refer: true,
+      rule_id: "IMNCI-4A",
+      rule_description: `Fast breathing detected: RR ${facts.respiratory_rate} >= ${threshold} bpm (age ${facts.patient_age_months}mo). Matches pneumonia criterion.`
     };
   }
 
@@ -118,6 +146,8 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
     classification_name: "NO PNEUMONIA: COUGH OR COLD",
     treatment_instruction: "Home care advice.",
     missing_fields: [],
-    is_safe_to_refer: true
+    is_safe_to_refer: true,
+    rule_id: "IMNCI-5A",
+    rule_description: `No fast breathing (RR ${facts.respiratory_rate} < ${typeof facts.patient_age_months === "number" && facts.patient_age_months < 12 ? 50 : 40} bpm), no danger signs, no severe physical signs.`
   };
 }

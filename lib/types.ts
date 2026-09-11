@@ -46,4 +46,6 @@ export interface ProtocolResult {
   treatment_instruction: string | null;
   missing_fields: MissingFieldRequirement[];
   is_safe_to_refer: boolean;
+  rule_id?: string;
+  rule_description?: string;
 }

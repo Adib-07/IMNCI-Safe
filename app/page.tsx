@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useMemo } from "react";
 import { ImnciAssessment } from "@/lib/types";
 import { evaluateImnciProtocol } from "@/lib/imnci-rules";
 import { Header } from "@/components/Header";
@@ -21,6 +21,34 @@ import {
 
 type PipelineStage = "idle" | "input" | "extract" | "verify" | "classify";
 
+interface MockEntity {
+  label: string;
+  value: string;
+  color: string;
+}
+
+const MOCK_CASCADE_ENTITIES: MockEntity[] = [
+  { label: "Age", value: "14 months", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
+  { label: "Symptom", value: "Cough", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
+  { label: "RR", value: "48 bpm", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
+  { label: "Fast breathing", value: "Yes", color: "text-red-400 bg-red-500/10 border-red-500/20" },
+  { label: "Chest indrawing", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+  { label: "Stridor", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+  { label: "Unable to drink", value: "Yes", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
+  { label: "Convulsions", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+];
+
+const MOCK_CASCADE_HIGH_RISK: MockEntity[] = [
+  { label: "Age", value: "8 months", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
+  { label: "Symptom", value: "Cough", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
+  { label: "RR", value: "55 bpm", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
+  { label: "Fast breathing", value: "Yes", color: "text-red-400 bg-red-500/10 border-red-500/20" },
+  { label: "Chest indrawing", value: "Yes", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
+  { label: "Stridor", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+  { label: "Unable to drink", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+  { label: "Convulsions", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+];
+
 export default function ImnciDashboard() {
   const [inputText, setInputText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
@@ -29,31 +57,60 @@ export default function ImnciDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [pipelineStage, setPipelineStage] = useState<PipelineStage>("idle");
   const [inputError, setInputError] = useState<string | null>(null);
+  const [cascadingEntities, setCascadingEntities] = useState<MockEntity[]>([]);
+  const [shakeInput, setShakeInput] = useState(false);
+  const cascadeTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  const protocolResult = assessment ? evaluateImnciProtocol(assessment) : null;
+  const protocolResult = useMemo(
+    () => (assessment ? evaluateImnciProtocol(assessment) : null),
+    [assessment]
+  );
+
+  const showVerification = useMemo(() => !!assessment, [assessment]);
+  const showCenterPanel = useMemo(
+    () => showVerification || pipelineStage === "extract" || pipelineStage === "verify",
+    [showVerification, pipelineStage]
+  );
 
   const clearError = useCallback(() => {
     setInputError(null);
     setError(null);
   }, []);
 
+  const clearCascadeTimers = useCallback(() => {
+    cascadeTimers.current.forEach(clearTimeout);
+    cascadeTimers.current = [];
+  }, []);
+
   const handleProcessNotes = useCallback(() => {
     const trimmed = inputText.trim();
     if (!trimmed) {
       setInputError("Please enter clinical notes before processing.");
+      setShakeInput(true);
+      setTimeout(() => setShakeInput(false), 400);
       return;
     }
     setInputError(null);
     setError(null);
     setAssessment(null);
     setIsFallback(false);
+    setCascadingEntities([]);
 
-    // Step 2: Extract (1.5s delay)
+    // Step 2: Extract (1.5s delay with cascading entities)
     setPipelineStage("extract");
     setIsExtracting(true);
 
+    // Cascade entity pills one by one
+    const entities = MOCK_CASCADE_ENTITIES;
+    entities.forEach((entity, i) => {
+      const timer = setTimeout(() => {
+        setCascadingEntities((prev) => [...prev, entity]);
+      }, i * 350);
+      cascadeTimers.current.push(timer);
+    });
+
     setTimeout(() => {
-      // Step 3: Verify — still extracting (loading skeletons in right card)
+      // Step 3: Verify — skeleton loader
       setPipelineStage("verify");
 
       setTimeout(() => {
@@ -61,6 +118,8 @@ export default function ImnciDashboard() {
         setPipelineStage("classify");
         setIsExtracting(false);
         setIsFallback(true);
+        setCascadingEntities([]);
+        clearCascadeTimers();
         setAssessment({
           facts: {
             patient_age_months: 14,
@@ -79,7 +138,7 @@ export default function ImnciDashboard() {
         });
       }, 1000);
     }, 1500);
-  }, [inputText]);
+  }, [inputText, clearCascadeTimers]);
 
   const handleExtract = useCallback(
     async (overrideText?: string, useMockId?: string) => {
@@ -90,7 +149,21 @@ export default function ImnciDashboard() {
       setError(null);
       setIsExtracting(true);
       setAssessment(null);
+      setCascadingEntities([]);
+      clearCascadeTimers();
       setPipelineStage("extract");
+
+      // Determine which cascade entities to use based on mock ID
+      const isHighRisk = useMockId === "FIXTURE_HIGH_RISK";
+      const cascadeEntities = isHighRisk ? MOCK_CASCADE_HIGH_RISK : MOCK_CASCADE_ENTITIES;
+
+      // Cascade entity pills
+      cascadeEntities.forEach((entity, i) => {
+        const timer = setTimeout(() => {
+          setCascadingEntities((prev) => [...prev, entity]);
+        }, i * 350);
+        cascadeTimers.current.push(timer);
+      });
 
       try {
         const res = await fetch("/api/extract", {
@@ -108,6 +181,8 @@ export default function ImnciDashboard() {
         setAssessment(data.assessment);
         setIsFallback(data.isFallback);
         setPipelineStage("classify");
+        setCascadingEntities([]);
+        clearCascadeTimers();
       } catch (err) {
         console.error(err);
         setError("Extraction failed. Using fallback fixture for demo.");
@@ -129,34 +204,39 @@ export default function ImnciDashboard() {
           },
         });
         setPipelineStage("classify");
+        setCascadingEntities([]);
+        clearCascadeTimers();
       } finally {
         setIsExtracting(false);
       }
     },
-    [inputText]
+    [inputText, clearCascadeTimers]
   );
 
-  const updateFact = (
-    key: string,
-    val: string | number | boolean,
-    isDangerSign: boolean = false
-  ) => {
-    if (!assessment) return;
-    setError(null);
-    const newAssessment = JSON.parse(
-      JSON.stringify(assessment)
-    ) as ImnciAssessment;
-    if (isDangerSign) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (newAssessment.facts.danger_signs as any)[key] = val;
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (newAssessment.facts as any)[key] = val;
-    }
-    setAssessment(newAssessment);
-  };
+  const updateFact = useCallback(
+    (
+      key: string,
+      val: string | number | boolean,
+      isDangerSign: boolean = false
+    ) => {
+      if (!assessment) return;
+      setError(null);
+      const newAssessment = JSON.parse(
+        JSON.stringify(assessment)
+      ) as ImnciAssessment;
+      if (isDangerSign) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (newAssessment.facts.danger_signs as any)[key] = val;
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (newAssessment.facts as any)[key] = val;
+      }
+      setAssessment(newAssessment);
+    },
+    [assessment]
+  );
 
-  const resetAll = () => {
+  const resetAll = useCallback(() => {
     setInputText("");
     setAssessment(null);
     setIsFallback(false);
@@ -164,9 +244,9 @@ export default function ImnciDashboard() {
     setInputError(null);
     setPipelineStage("idle");
     setIsExtracting(false);
-  };
-
-  const showVerification = !!assessment;
+    setCascadingEntities([]);
+    clearCascadeTimers();
+  }, [clearCascadeTimers]);
 
   return (
     <div className="min-h-screen bg-[#0B0F19] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-[#0B0F19] to-[#0B0F19] flex flex-col">
@@ -236,19 +316,22 @@ export default function ImnciDashboard() {
             isExtracting={isExtracting}
             isProcessing={isExtracting}
             isDisabled={false}
+            shakeInput={shakeInput}
           />
 
-          {/* Panel 2: Verification */}
-          {showVerification && (
+          {/* Panel 2: Verification / Extraction */}
+          {showCenterPanel && (
             <VerificationPanel
               assessment={assessment}
               isExtracting={isExtracting}
               isFallback={isFallback}
               onUpdateFact={updateFact}
+              pipelineStage={pipelineStage}
+              cascadingEntities={cascadingEntities}
             />
           )}
 
-          {!showVerification && (
+          {!showCenterPanel && (
             <div className="hidden lg:flex rounded-2xl border border-slate-800 bg-slate-900/30 backdrop-blur-xl items-center justify-center py-12">
               <div className="text-center px-6">
                 <div className="w-14 h-14 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mx-auto mb-4 relative">
@@ -265,12 +348,18 @@ export default function ImnciDashboard() {
             </div>
           )}
 
-          {!showVerification && (
+          {!showCenterPanel && (
             <div className="lg:hidden" />
           )}
 
           {/* Panel 3: Classification */}
-          <ReferralCard result={protocolResult} assessment={assessment} isExtracting={isExtracting} />
+          <ReferralCard
+            result={protocolResult}
+            assessment={assessment}
+            isExtracting={isExtracting}
+            pipelineStage={pipelineStage}
+            onReset={resetAll}
+          />
         </div>
       </section>
 

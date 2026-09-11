@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { ClipboardList, AlertCircle, Activity, Zap, Thermometer, Stethoscope, Play } from "lucide-react";
+import { sanitizeInput } from "@/lib/sanitize";
 
 interface InputPanelProps {
   inputText: string;
@@ -12,6 +13,7 @@ interface InputPanelProps {
   isExtracting: boolean;
   isProcessing: boolean;
   isDisabled: boolean;
+  shakeInput?: boolean;
 }
 
 const QUICK_FILL_CASES = [
@@ -68,11 +70,20 @@ export function InputPanel({
   isExtracting,
   isProcessing,
   isDisabled,
+  shakeInput,
 }: InputPanelProps) {
   const isBusy = isExtracting || isProcessing;
 
+  const handleInputChange = useCallback(
+    (value: string) => {
+      const sanitized = sanitizeInput(value);
+      onInputChange(sanitized);
+    },
+    [onInputChange]
+  );
+
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl backdrop-blur-xl p-6 flex flex-col overflow-hidden">
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl backdrop-blur-xl p-6 flex flex-col overflow-hidden hover:border-slate-700/80 transition-colors duration-300">
       <div className="flex items-center gap-2 mb-5">
         <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
           <ClipboardList className="w-3.5 h-3.5 text-blue-400" />
@@ -81,19 +92,19 @@ export function InputPanel({
       </div>
 
       <div className="flex flex-col gap-4 flex-1">
-        <div className="flex flex-col gap-1.5">
+        <div className={`flex flex-col gap-1.5 ${shakeInput ? "animate-shake" : ""}`}>
           <label className="text-xs text-slate-500 font-medium">
             Paste field notes or voice transcript
           </label>
           <textarea
             className={`w-full min-h-[180px] p-3 text-sm text-slate-200 bg-slate-800/50 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none placeholder:text-slate-600 transition-all duration-200 ${
               inputError
-                ? "border-red-500/50 focus:ring-red-500/30 focus:border-red-500/50"
-                : "border-slate-700/50"
+                ? "border-red-500/50 focus:ring-red-500/30 focus:border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.15)]"
+                : "border-slate-700/50 hover:border-slate-600/50"
             }`}
             placeholder="e.g. Baccha 18 months ka hai, 2 din se khansi..."
             value={inputText}
-            onChange={(e) => onInputChange(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             disabled={isBusy}
           />
           {inputError && (
@@ -108,7 +119,7 @@ export function InputPanel({
         <button
           onClick={onProcessNotes}
           disabled={!inputText.trim() || isBusy || isDisabled}
-          className="w-full py-2.5 px-4 text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0"
+          className="w-full py-2.5 px-4 text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0 disabled:hover:translate-y-0"
         >
           {isBusy ? (
             <>

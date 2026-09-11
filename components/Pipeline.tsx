@@ -46,14 +46,14 @@ export function Pipeline({ currentStage }: PipelineProps) {
                 <div
                   className={`group relative w-10 h-10 rounded-full flex items-center justify-center mb-1.5 transition-all duration-300 hover:scale-105 ${
                     isActive
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-110"
+                      ? "bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] scale-110"
                       : isComplete
                         ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
                         : "bg-slate-800 text-slate-500 border border-slate-700"
                   }`}
                 >
                   {isActive && (
-                    <div className="absolute inset-0 rounded-full border border-blue-400/40 animate-pulse" />
+                    <div className="absolute inset-0 rounded-full border border-emerald-400/50 animate-ping" style={{ animationDuration: "2s" }} />
                   )}
                   {isComplete ? (
                     <span className="text-sm font-bold">✓</span>
@@ -69,11 +69,11 @@ export function Pipeline({ currentStage }: PipelineProps) {
               {i < STAGES.length - 1 && (
                 <li className="flex items-center" aria-hidden="true">
                   <div
-                    className={`h-0.5 w-8 sm:w-14 rounded-full transition-all duration-500 ${
+                    className={`h-0.5 w-8 sm:w-14 rounded-full transition-all duration-700 ease-in-out ${
                       currentIndex > stageIndex
-                        ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
+                        ? "bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.3)]"
                         : currentIndex === stageIndex
-                          ? "bg-gradient-to-r from-blue-500 to-cyan-400"
+                          ? "bg-gradient-to-r from-emerald-500 to-emerald-400/40"
                           : "bg-slate-800"
                     }`}
                   />
