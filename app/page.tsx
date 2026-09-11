@@ -7,12 +7,14 @@ import { Header } from "@/components/Header";
 import { InputPanel } from "@/components/InputPanel";
 import { VerificationPanel } from "@/components/VerificationPanel";
 import { ReferralCard } from "@/components/ReferralCard";
+import { AlertCircle } from "lucide-react";
 
 export default function ImnciDashboard() {
   const [inputText, setInputText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [assessment, setAssessment] = useState<ImnciAssessment | null>(null);
   const [isFallback, setIsFallback] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const protocolResult = assessment ? evaluateImnciProtocol(assessment) : null;
 
@@ -22,6 +24,7 @@ export default function ImnciDashboard() {
 
     setIsExtracting(true);
     setAssessment(null);
+    setError(null);
     try {
       const res = await fetch("/api/extract", {
         method: "POST",
@@ -31,11 +34,33 @@ export default function ImnciDashboard() {
           useMock: !!useMockId,
         }),
       });
+      if (!res.ok) {
+        throw new Error(`Extraction failed (${res.status})`);
+      }
       const data = await res.json();
       setAssessment(data.assessment);
       setIsFallback(data.isFallback);
     } catch (err) {
       console.error(err);
+      setError("Extraction failed. Using fallback fixture for demo.");
+      setIsFallback(true);
+      // Set a minimal assessment so the UI shows something
+      setAssessment({
+        facts: {
+          patient_age_months: "unknown",
+          has_cough_or_difficult_breathing: "unknown",
+          respiratory_rate: "unknown",
+          fast_breathing_reported: "unknown",
+          chest_indrawing: "unknown",
+          stridor_in_calm_child: "unknown",
+          danger_signs: {
+            unable_to_drink_or_breastfeed: "unknown",
+            vomits_everything: "unknown",
+            has_convulsions: "unknown",
+            lethargic_or_unconscious: "unknown",
+          },
+        },
+      });
     } finally {
       setIsExtracting(false);
     }
@@ -47,6 +72,7 @@ export default function ImnciDashboard() {
     isDangerSign: boolean = false
   ) => {
     if (!assessment) return;
+    setError(null);
     const newAssessment = JSON.parse(
       JSON.stringify(assessment)
     ) as ImnciAssessment;
@@ -64,11 +90,12 @@ export default function ImnciDashboard() {
     setInputText("");
     setAssessment(null);
     setIsFallback(false);
+    setError(null);
   };
 
   return (
     <div className="min-h-screen bg-surface-page flex flex-col">
-      <Header onReset={resetAll} showReset={!!assessment || isExtracting} />
+      <Header onReset={resetAll} showReset={!!assessment || isExtracting} isFallback={assessment ? isFallback : null} />
 
       <main className="flex-1 max-w-[1600px] w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-[2fr_2fr_1.5fr] gap-4 md:gap-5 items-start">
         {/* Panel 1: Input */}
@@ -79,6 +106,19 @@ export default function ImnciDashboard() {
           isExtracting={isExtracting}
           isDisabled={false}
         />
+
+        {/* Error Banner */}
+        {error && (
+          <div className="lg:col-span-2 bg-amber-bg border border-amber-border rounded-[6px] px-4 py-3 flex items-start gap-3 animate-fade-in">
+            <AlertCircle className="w-4 h-4 text-amber-accent mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="type-body font-medium text-amber-accent">{error}</p>
+              <p className="type-caption text-amber-accent/70 mt-0.5">
+                The system fell back to a demo fixture. Reset and try again with a valid API key.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Panel 2: Verification */}
         {assessment && (
@@ -123,7 +163,7 @@ export default function ImnciDashboard() {
         )}
 
         {/* Panel 3: Referral Card */}
-        <ReferralCard result={protocolResult} />
+        <ReferralCard result={protocolResult} assessment={assessment} />
       </main>
     </div>
   );

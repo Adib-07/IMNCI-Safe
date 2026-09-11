@@ -101,7 +101,7 @@ export function VerificationPanel({
         </div>
         {isFallback && (
           <span className="type-micro text-amber-accent bg-amber-bg border border-amber-border px-2 py-0.5 rounded">
-            DEMO FALLBACK
+            [DEMO FALLBACK FIXTURE]
           </span>
         )}
       </div>
@@ -266,6 +266,7 @@ export function VerificationPanel({
                 <FieldRow
                   label="Chest Indrawing"
                   value={f.chest_indrawing}
+                  evidence={ev?.chest_indrawing_evidence}
                 >
                   <SegmentedControl
                     value={f.chest_indrawing}
@@ -281,6 +282,7 @@ export function VerificationPanel({
                 <FieldRow
                   label="Stridor in calm child"
                   value={f.stridor_in_calm_child}
+                  evidence={ev?.stridor_evidence}
                 >
                   <SegmentedControl
                     value={f.stridor_in_calm_child}

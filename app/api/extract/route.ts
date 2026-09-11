@@ -29,7 +29,9 @@ const extractionSchema: Schema = {
         age_evidence: { type: Type.STRING, nullable: true },
         cough_evidence: { type: Type.STRING, nullable: true },
         respiratory_evidence: { type: Type.STRING, nullable: true },
-        danger_signs_evidence: { type: Type.STRING, nullable: true }
+        danger_signs_evidence: { type: Type.STRING, nullable: true },
+        chest_indrawing_evidence: { type: Type.STRING, nullable: true },
+        stridor_evidence: { type: Type.STRING, nullable: true }
       }
     }
   },

@@ -22,6 +22,8 @@ export interface ExtractedEvidence {
   cough_evidence: string | null;
   respiratory_evidence: string | null;
   danger_signs_evidence: string | null;
+  chest_indrawing_evidence: string | null;
+  stridor_evidence: string | null;
 }
 
 export interface ImnciAssessment {

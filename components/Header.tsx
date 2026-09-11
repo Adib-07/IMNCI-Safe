@@ -6,9 +6,10 @@ import { Shield, RotateCcw } from "lucide-react";
 interface HeaderProps {
   onReset: () => void;
   showReset: boolean;
+  isFallback: boolean | null;
 }
 
-export function Header({ onReset, showReset }: HeaderProps) {
+export function Header({ onReset, showReset, isFallback }: HeaderProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-border-default bg-surface-card/95 backdrop-blur-sm">
       <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-2.5 flex items-center justify-between">
@@ -37,14 +38,27 @@ export function Header({ onReset, showReset }: HeaderProps) {
           </div>
 
           {showReset && (
-            <button
-              onClick={onReset}
-              className="flex items-center gap-1.5 type-caption text-white bg-neutral-dark hover:bg-neutral-dark-hover px-2.5 py-1.5 rounded-[4px] transition-colors"
-              title="Start New Case"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">New Case</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {isFallback !== null && (
+                <span
+                  className={`type-micro px-2 py-0.5 rounded ${
+                    isFallback
+                      ? "text-amber-accent bg-amber-bg border border-amber-border"
+                      : "text-green-accent bg-green-bg border border-green-border"
+                  }`}
+                >
+                  {isFallback ? "Demo Fallback" : "Live"}
+                </span>
+              )}
+              <button
+                onClick={onReset}
+                className="flex items-center gap-1.5 type-caption text-white bg-neutral-dark hover:bg-neutral-dark-hover px-2.5 py-1.5 rounded-[4px] transition-colors"
+                title="Start New Case"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">New Case</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

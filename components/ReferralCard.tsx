@@ -9,10 +9,11 @@ import {
   XCircle,
   Info,
 } from "lucide-react";
-import type { ProtocolResult, TriageColor } from "@/lib/types";
+import type { ProtocolResult, TriageColor, ImnciAssessment } from "@/lib/types";
 
 interface ReferralCardProps {
   result: ProtocolResult | null;
+  assessment: ImnciAssessment | null;
 }
 
 const COLOR_CONFIG: Record<
@@ -60,20 +61,46 @@ const COLOR_CONFIG: Record<
   },
 };
 
-function buildFiredRuleText(result: ProtocolResult): string | null {
+function buildFiredRuleText(result: ProtocolResult, assessment: ImnciAssessment | null): string {
   if (result.triage_color === "PINK") {
-    return "General danger sign(s) present OR severe physical sign";
+    const reasons: string[] = [];
+    const f = assessment?.facts;
+    if (f) {
+      const gds = f.danger_signs;
+      if (gds.unable_to_drink_or_breastfeed === true) reasons.push("unable to drink/breastfeed");
+      if (gds.vomits_everything === true) reasons.push("vomits everything");
+      if (gds.has_convulsions === true) reasons.push("convulsions");
+      if (gds.lethargic_or_unconscious === true) reasons.push("lethargic/unconscious");
+      if (f.chest_indrawing === true) reasons.push("chest indrawing");
+      if (f.stridor_in_calm_child === true) reasons.push("stridor in calm child");
+    }
+    return reasons.length > 0
+      ? `Severe: ${reasons.join(", ")}`
+      : "General danger sign(s) or severe physical sign present";
   }
+
   if (result.triage_color === "YELLOW") {
-    return "Fast breathing detected for age cohort → PNEUMONIA";
+    const f = assessment?.facts;
+    if (f && typeof f.patient_age_months === "number" && typeof f.respiratory_rate === "number") {
+      const threshold = f.patient_age_months < 12 ? 50 : 40;
+      return `RR ${f.respiratory_rate} ≥ ${threshold} bpm (age ${f.patient_age_months}mo) → Fast breathing`;
+    }
+    return "Fast breathing detected for age cohort";
   }
+
   if (result.triage_color === "GREEN") {
+    const f = assessment?.facts;
+    if (f && typeof f.patient_age_months === "number" && typeof f.respiratory_rate === "number") {
+      const threshold = f.patient_age_months < 12 ? 50 : 40;
+      return `RR ${f.respiratory_rate} < ${threshold} bpm (age ${f.patient_age_months}mo) — No fast breathing`;
+    }
     return "No fast breathing, no danger signs, no severe physical signs";
   }
-  return null;
+
+  return "";
 }
 
-export function ReferralCard({ result }: ReferralCardProps) {
+export function ReferralCard({ result, assessment }: ReferralCardProps) {
   const [animating, setAnimating] = useState(false);
   const prevWasBlocked = useRef(false);
 
@@ -114,7 +141,7 @@ export function ReferralCard({ result }: ReferralCardProps) {
   const color = result.triage_color || "AMBER";
   const cfg = COLOR_CONFIG[color];
   const Icon = cfg.icon;
-  const firedRule = buildFiredRuleText(result);
+  const firedRule = buildFiredRuleText(result, assessment);
 
   const topBorderColor = isBlocked
     ? "var(--color-amber-accent)"
