@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, HelpCircle } from "lucide-react";
+import { Search, HelpCircle, Cpu } from "lucide-react";
 import { SegmentedControl } from "./SegmentedControl";
 import type { ImnciAssessment } from "@/lib/types";
 
@@ -34,11 +34,11 @@ function ChartFieldRow({
       <div className="chart-row-label">
         <div className={`check-indicator ${isConfirmed ? "checked" : ""}`} />
         <div className="min-w-0">
-          <span className="type-body-sm font-medium text-ink block">
+          <span className="text-sm font-medium text-slate-200 block">
             {label}
           </span>
           {evidence && isConfirmed && (
-            <p className="type-caption text-ink-muted mt-0.5 italic border-l-2 border-rule pl-2 ml-5">
+            <p className="text-[0.6875rem] text-slate-500 mt-0.5 italic border-l-2 border-slate-700 pl-2 ml-5">
               &quot;{evidence}&quot;
             </p>
           )}
@@ -65,7 +65,7 @@ function NumberInput({
     <input
       type="text"
       inputMode="numeric"
-      className="w-full max-w-[110px] px-2.5 py-1.5 type-body-sm text-ink bg-surface-inset border border-rule rounded-sm focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-rule-strong placeholder:text-ink-muted tabular-nums"
+      className="w-full max-w-[110px] px-2.5 py-1.5 text-sm text-slate-200 bg-slate-800/50 border border-slate-700/50 rounded-lg focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 outline-none placeholder:text-slate-600 tabular-nums transition-all duration-200"
       placeholder={placeholder || "unknown"}
       value={displayVal}
       onChange={(e) => onChange(e.target.value || "unknown")}
@@ -89,36 +89,59 @@ export function VerificationPanel({
   };
 
   return (
-    <section className="bg-surface-card border border-rule flex flex-col overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-rule flex items-center justify-between">
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl flex flex-col overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-800/60 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Search className="w-4 h-4 text-ink-muted" />
-          <h2 className="type-label">Extracted Facts</h2>
+          <div className="w-7 h-7 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+            <Search className="w-3.5 h-3.5 text-violet-400" />
+          </div>
+          <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Extracted Facts</h2>
         </div>
         {isFallback && (
-          <span className="type-micro text-triage-blocked bg-triage-blocked-bg border border-triage-blocked-border px-2 py-0.5 rounded-sm">
+          <span className="text-[0.625rem] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
             DEMO FIXTURE
           </span>
         )}
       </div>
 
-      <div className="p-4 overflow-y-auto flex-1 custom-scrollbar max-h-[calc(100vh-220px)]">
+      <div className="p-5 overflow-y-auto flex-1 custom-scrollbar max-h-[calc(100vh-220px)]">
         {!assessment && !isExtracting && (
-          <div className="flex flex-col items-center justify-center py-12 text-ink-muted gap-2">
-            <HelpCircle className="w-8 h-8 opacity-20" />
-            <p className="type-body-sm">Awaiting extraction</p>
+          <div className="flex flex-col items-center justify-center py-12 text-slate-600 gap-3">
+            <div className="relative">
+              <HelpCircle className="w-8 h-8 opacity-20" />
+              <div className="absolute inset-0 rounded-full border border-slate-700/30 animate-pulse" />
+            </div>
+            <p className="text-sm text-slate-500">Awaiting extraction</p>
           </div>
         )}
 
         {isExtracting && (
-          <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <div className="spinner" />
-            <p className="type-body-sm text-ink-secondary animate-pulse">
-              Extracting facts from assessment...
-            </p>
-            <p className="type-caption text-ink-muted">
-              Gemini is analyzing clinical notes
-            </p>
+          <div className="flex flex-col items-center justify-center py-12 gap-4">
+            <div className="relative">
+              <div className="w-14 h-14 rounded-full border-2 border-slate-700 border-t-emerald-500 animate-spin" />
+              <Cpu className="w-5 h-5 text-emerald-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-slate-300 font-medium animate-pulse">
+                Extracting facts from assessment...
+              </p>
+              <p className="text-xs text-slate-600 mt-1">
+                Gemini is analyzing clinical notes
+              </p>
+            </div>
+            {/* Skeleton loader */}
+            <div className="w-full space-y-3 mt-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 animate-pulse">
+                  <div className="w-3.5 h-3.5 rounded border border-slate-700 bg-slate-800/50" />
+                  <div className="flex-1">
+                    <div className="h-3 bg-slate-800/50 rounded w-2/3 mb-1.5" />
+                    <div className="h-2 bg-slate-800/30 rounded w-1/3" />
+                  </div>
+                  <div className="w-20 h-6 bg-slate-800/50 rounded-lg" />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -126,7 +149,7 @@ export function VerificationPanel({
           <div className="animate-fade-in">
             {/* Patient Information */}
             <div className="mb-4">
-              <h3 className="type-micro text-ink-muted mb-2">
+              <h3 className="text-[0.6875rem] font-semibold text-slate-500 tracking-widest mb-3">
                 PATIENT INFORMATION
               </h3>
               <div>
@@ -177,11 +200,11 @@ export function VerificationPanel({
               </div>
             </div>
 
-            <hr className="hairline-rule my-3" />
+            <hr className="border-t border-slate-800/60 my-3" />
 
             {/* Danger Signs */}
             <div className="mb-4">
-              <h3 className="type-micro text-ink-muted mb-2">
+              <h3 className="text-[0.6875rem] font-semibold text-slate-500 tracking-widest mb-3">
                 4 GENERAL DANGER SIGNS
               </h3>
               <div>
@@ -255,11 +278,11 @@ export function VerificationPanel({
               </div>
             </div>
 
-            <hr className="hairline-rule my-3" />
+            <hr className="border-t border-slate-800/60 my-3" />
 
             {/* Respiratory Assessment */}
             <div>
-              <h3 className="type-micro text-ink-muted mb-2">
+              <h3 className="text-[0.6875rem] font-semibold text-slate-500 tracking-widest mb-3">
                 RESPIRATORY ASSESSMENT
               </h3>
               <div>

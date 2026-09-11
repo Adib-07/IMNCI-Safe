@@ -22,41 +22,36 @@ const COLOR_CONFIG: Record<
     bg: string;
     border: string;
     text: string;
-    badge: string;
-    badgeText: string;
+    glow: string;
     icon: React.ElementType;
   }
 > = {
   PINK: {
-    bg: "bg-triage-urgent-bg",
-    border: "border-triage-urgent-border",
-    text: "text-triage-urgent",
-    badge: "bg-triage-urgent",
-    badgeText: "text-white",
+    bg: "bg-pink-500/5",
+    border: "border-pink-500/30",
+    text: "text-pink-400",
+    glow: "shadow-pink-500/20",
     icon: AlertTriangle,
   },
   YELLOW: {
-    bg: "bg-triage-treatment-bg",
-    border: "border-triage-treatment-border",
-    text: "text-triage-treatment",
-    badge: "bg-triage-treatment",
-    badgeText: "text-white",
+    bg: "bg-amber-500/5",
+    border: "border-amber-500/30",
+    text: "text-amber-400",
+    glow: "shadow-amber-500/20",
     icon: Activity,
   },
   GREEN: {
-    bg: "bg-triage-homecare-bg",
-    border: "border-triage-homecare-border",
-    text: "text-triage-homecare",
-    badge: "bg-triage-homecare",
-    badgeText: "text-white",
+    bg: "bg-emerald-500/5",
+    border: "border-emerald-500/30",
+    text: "text-emerald-400",
+    glow: "shadow-emerald-500/20",
     icon: CheckCircle2,
   },
   AMBER: {
-    bg: "bg-triage-blocked-bg",
-    border: "border-triage-blocked-border",
-    text: "text-triage-blocked",
-    badge: "bg-triage-blocked",
-    badgeText: "text-white",
+    bg: "bg-amber-500/5",
+    border: "border-amber-500/30",
+    text: "text-amber-400",
+    glow: "shadow-amber-500/20",
     icon: Lock,
   },
 };
@@ -117,18 +112,24 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
 
   if (!result) {
     return (
-      <section className="bg-surface-card border border-rule border-t-[3px] border-t-ink-muted flex flex-col overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-rule flex items-center gap-2">
-          <Info className="w-4 h-4 text-ink-muted" />
-          <h2 className="type-label">Protocol Classification</h2>
+      <section className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl flex flex-col overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-800/60 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-slate-800/50 border border-slate-700/50 flex items-center justify-center">
+            <Info className="w-3.5 h-3.5 text-slate-500" />
+          </div>
+          <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Protocol Classification</h2>
         </div>
-        <div className="flex-1 flex items-center justify-center py-8">
+        <div className="flex-1 flex items-center justify-center py-10">
           <div className="text-center">
-            <div className="w-10 h-10 rounded-full bg-surface-inset flex items-center justify-center mx-auto mb-2">
-              <Info className="w-5 h-5 text-ink-muted" />
+            <div className="w-14 h-14 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mx-auto mb-4 relative">
+              <Info className="w-6 h-6 text-slate-600" />
+              <div className="absolute inset-0 rounded-full border border-slate-700/30 animate-pulse" />
             </div>
-            <p className="type-body-sm text-ink-secondary">
+            <p className="text-sm text-slate-400 font-medium mb-1">
               Complete verification to reveal classification
+            </p>
+            <p className="text-xs text-slate-600">
+              Or run a case from the input panel
             </p>
           </div>
         </div>
@@ -143,51 +144,47 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
   const Icon = cfg.icon;
   const firedRule = buildFiredRuleText(result, assessment);
 
-  const topBorderColor = isBlocked
-    ? "var(--color-triage-blocked)"
-    : isOoc
-      ? "var(--color-ink-muted)"
-      : `var(--color-triage-${color === "PINK" ? "urgent" : color === "YELLOW" ? "treatment" : "homecare"})`;
-
   return (
-    <section className="bg-surface-card border border-rule rounded-sm flex flex-col overflow-hidden" style={{ borderTopColor: topBorderColor, borderTopWidth: "3px" }}>
-      <div className="px-4 py-2.5 border-b border-rule flex items-center gap-2">
-        <CheckCircle2 className="w-4 h-4 text-ink-muted" />
-        <h2 className="type-label">Protocol Classification</h2>
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl flex flex-col overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-800/60 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+        </div>
+        <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Protocol Classification</h2>
       </div>
 
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-5 flex-1 flex flex-col">
         <div
-          className={`rounded-sm border-2 p-5 transition-all duration-300 ${
+          className={`rounded-xl border-2 p-5 transition-all duration-300 ${
             isBlocked
-              ? "bg-triage-blocked-bg border-triage-blocked-border"
+              ? "bg-amber-500/5 border-amber-500/30"
               : isOoc
-                ? "bg-surface-inset border-rule-strong"
+                ? "bg-slate-800/30 border-slate-700/50"
                 : `${cfg.bg} ${cfg.border}`
           } ${animating ? "animate-unlock" : ""}`}
         >
           {/* Header */}
           <div className="flex items-center gap-3 mb-3">
             {isBlocked ? (
-              <div className="w-10 h-10 rounded-full bg-triage-blocked/10 flex items-center justify-center">
-                <Lock className="w-5 h-5 text-triage-blocked" />
+              <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <Lock className="w-5 h-5 text-amber-400" />
               </div>
             ) : isOoc ? (
-              <div className="w-10 h-10 rounded-full bg-surface-page flex items-center justify-center">
-                <XCircle className="w-5 h-5 text-ink-secondary" />
+              <div className="w-11 h-11 rounded-xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center">
+                <XCircle className="w-5 h-5 text-slate-500" />
               </div>
             ) : (
-              <div className="w-10 h-10 rounded-full bg-white/60 flex items-center justify-center">
+              <div className={`w-11 h-11 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shadow-lg ${cfg.glow}`}>
                 <Icon className={`w-5 h-5 ${cfg.text}`} />
               </div>
             )}
             <div>
               <h3
-                className={`type-title ${
+                className={`text-base font-semibold ${
                   isBlocked
-                    ? "text-triage-blocked"
+                    ? "text-amber-400"
                     : isOoc
-                      ? "text-ink"
+                      ? "text-slate-300"
                       : cfg.text
                 }`}
               >
@@ -199,7 +196,8 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
               </h3>
               {!isBlocked && !isOoc && (
                 <div
-                  className={`inline-block mt-1 px-2 py-0.5 rounded-sm type-micro ${cfg.badge} ${cfg.badgeText}`}
+                  className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[0.625rem] font-semibold ${cfg.text} bg-current/10`}
+                  style={{ backgroundColor: `color-mix(in srgb, currentColor 10%, transparent)` }}
                 >
                   {result.triage_color}
                 </div>
@@ -210,25 +208,25 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
           {/* Blocked State */}
           {isBlocked && (
             <div className="space-y-3">
-              <p className="type-body-sm text-triage-blocked/80">
+              <p className="text-sm text-amber-400/80">
                 {result.treatment_instruction}
               </p>
-              <div className="bg-white/50 rounded-sm p-3">
-                <p className="type-micro text-triage-blocked mb-2">
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
+                <p className="text-[0.625rem] font-semibold text-amber-400 mb-2 tracking-wider">
                   MISSING {result.missing_fields.length} REQUIRED{" "}
                   {result.missing_fields.length === 1 ? "FACT" : "FACTS"}
                 </p>
                 <ul className="space-y-1.5">
                   {result.missing_fields.map((mf, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-triage-blocked mt-1.5 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
                       <div>
-                        <span className="type-body-sm font-medium text-triage-blocked">
+                        <span className="text-sm font-medium text-amber-300">
                           {mf.field
                             .replace("danger_signs.", "")
                             .replace(/_/g, " ")}
                         </span>
-                        <span className="type-caption text-triage-blocked/60 block">
+                        <span className="text-xs text-amber-400/50 block">
                           {mf.reason}
                         </span>
                       </div>
@@ -243,16 +241,16 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
           {!isBlocked && !isOoc && (
             <div className="space-y-3">
               {firedRule && (
-                <div className="bg-white/40 rounded-sm p-3 border border-white/60">
-                  <p className="type-micro text-ink-secondary mb-1">
+                <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-3">
+                  <p className="text-[0.625rem] font-semibold text-slate-500 mb-1 tracking-wider">
                     RULE FIRED
                   </p>
-                  <p className={`type-body-sm font-medium ${cfg.text}`}>
+                  <p className={`text-sm font-medium ${cfg.text}`}>
                     {firedRule}
                   </p>
                 </div>
               )}
-              <p className={`type-body-sm font-medium ${cfg.text}`}>
+              <p className={`text-sm font-medium ${cfg.text}`}>
                 {result.treatment_instruction}
               </p>
             </div>
@@ -260,7 +258,7 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
 
           {/* Out of Cohort */}
           {isOoc && (
-            <p className="type-body-sm text-ink-secondary">
+            <p className="text-sm text-slate-400">
               Patient is outside the 2-59 month age cohort for this IMNCI
               module.
             </p>
@@ -268,13 +266,13 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-3 border-t border-rule flex items-center gap-4">
-          <div className="flex items-center gap-1.5 type-caption text-ink-muted">
-            <div className="w-1.5 h-1.5 rounded-full bg-triage-homecare" />
+        <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-xs text-slate-600">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Deterministic TypeScript logic
           </div>
-          <div className="flex items-center gap-1.5 type-caption text-ink-muted">
-            <div className="w-1.5 h-1.5 rounded-full bg-triage-homecare" />
+          <div className="flex items-center gap-1.5 text-xs text-slate-600">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Zero LLM in classification
           </div>
         </div>

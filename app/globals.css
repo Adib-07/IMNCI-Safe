@@ -19,22 +19,22 @@
   --color-triage-blocked-border: #D4B88A;
 
   /* ── Surfaces ── */
-  --color-surface-page: #F4F3F0;
-  --color-surface-card: #FFFFFF;
-  --color-surface-inset: #EDECEA;
+  --color-surface-page: #0B0F19;
+  --color-surface-card: #111827;
+  --color-surface-inset: #1F2937;
 
   /* ── Ink (text) ── */
-  --color-ink: #1A1D23;
-  --color-ink-secondary: #4A4E57;
-  --color-ink-muted: #8A8E96;
-  --color-ink-inverse: #FFFFFF;
+  --color-ink: #F9FAFB;
+  --color-ink-secondary: #9CA3AF;
+  --color-ink-muted: #6B7280;
+  --color-ink-inverse: #111827;
 
   /* ── Structural ── */
-  --color-rule: #DDDCC8;
-  --color-rule-strong: #B8B6A8;
+  --color-rule: #1F2937;
+  --color-rule-strong: #374151;
 
   /* ── Focus ── */
-  --color-focus-ring: rgba(26, 29, 35, 0.35);
+  --color-focus-ring: rgba(99, 102, 241, 0.45);
 
   /* ── Fonts ── */
   --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
@@ -42,8 +42,8 @@
 }
 
 :root {
-  --background: var(--color-surface-page);
-  --foreground: var(--color-ink);
+  --background: #0B0F19;
+  --foreground: #F9FAFB;
 }
 
 *,
@@ -93,7 +93,7 @@ body {
   font-size: 1rem;
   line-height: 1.5rem;
   font-weight: 500;
-  color: var(--color-ink-secondary);
+  color: #9CA3AF;
 }
 
 .type-body {
@@ -120,7 +120,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-ink-muted);
+  color: #6B7280;
 }
 
 .type-micro {
@@ -170,8 +170,8 @@ body {
 .spinner {
   width: 1.5rem;
   height: 1.5rem;
-  border: 2px solid var(--color-rule);
-  border-top-color: var(--color-ink);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #60A5FA;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -187,13 +187,13 @@ body {
   animation: stage-light 0.8s ease-in-out forwards;
 }
 
-/* ── Segment Control ── */
+/* ── Segment Control (dark mode) ── */
 .segmented-control {
   display: flex;
-  border: 1px solid var(--color-rule);
-  border-radius: 3px;
+  border: 1px solid #374151;
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--color-surface-inset);
+  background: rgba(31, 41, 55, 0.5);
 }
 
 .segmented-control button {
@@ -204,10 +204,10 @@ body {
   line-height: 1rem;
   border: none;
   background: transparent;
-  color: var(--color-ink-secondary);
+  color: #9CA3AF;
   cursor: pointer;
   transition: all 0.15s ease;
-  border-right: 1px solid var(--color-rule);
+  border-right: 1px solid #374151;
   font-family: var(--font-sans);
 }
 
@@ -216,30 +216,31 @@ body {
 }
 
 .segmented-control button:hover {
-  background: var(--color-surface-page);
+  background: rgba(55, 65, 81, 0.5);
+  color: #D1D5DB;
 }
 
 .segmented-control button:focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid #60A5FA;
   outline-offset: -2px;
   z-index: 1;
 }
 
 .segmented-control button.active-yes {
-  background: var(--color-triage-urgent-bg);
-  color: var(--color-triage-urgent);
+  background: rgba(236, 72, 153, 0.15);
+  color: #F472B6;
   font-weight: 600;
 }
 
 .segmented-control button.active-no {
-  background: var(--color-triage-homecare-bg);
-  color: var(--color-triage-homecare);
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
   font-weight: 600;
 }
 
 .segmented-control button.active-unknown {
-  background: var(--color-triage-blocked-bg);
-  color: var(--color-triage-blocked);
+  background: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
   font-weight: 600;
 }
 
@@ -250,7 +251,7 @@ body {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.625rem 0;
-  border-bottom: 1px solid var(--color-rule);
+  border-bottom: 1px solid rgba(31, 41, 55, 0.6);
 }
 
 .chart-row:last-child {
@@ -279,7 +280,7 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-rule-strong);
+  background: #374151;
   border-radius: 2px;
 }
 
@@ -300,20 +301,20 @@ body {
 
 /* ── Focus Ring Utility ── */
 .focus-ring:focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid #60A5FA;
   outline-offset: 2px;
 }
 
 /* ── Hairline Rule ── */
 .hairline-rule {
   border: none;
-  border-top: 1px solid var(--color-rule);
+  border-top: 1px solid #1F2937;
 }
 
 /* ── Pipeline connector ── */
 .pipeline-connector {
   width: 1px;
-  background: var(--color-rule-strong);
+  background: #374151;
   flex-shrink: 0;
 }
 
@@ -321,8 +322,8 @@ body {
 .check-indicator {
   width: 14px;
   height: 14px;
-  border: 1.5px solid var(--color-rule-strong);
-  border-radius: 2px;
+  border: 1.5px solid #374151;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -331,8 +332,8 @@ body {
 }
 
 .check-indicator.checked {
-  background: var(--color-triage-homecare);
-  border-color: var(--color-triage-homecare);
+  background: #10B981;
+  border-color: #10B981;
 }
 
 .check-indicator.checked::after {
@@ -342,4 +343,14 @@ body {
   border-left: 1.5px solid white;
   border-bottom: 1.5px solid white;
   transform: rotate(-45deg) translateY(-1px);
+}
+
+/* ── Hero grid background ── */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.06) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 40%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 40%, transparent 70%);
 }

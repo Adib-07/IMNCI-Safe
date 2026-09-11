@@ -14,8 +14,8 @@ interface PipelineProps {
 
 const STAGES = [
   { key: "input" as const, label: "Input", sublabel: "Paste notes", icon: FileText },
-  { key: "extract" as const, label: "Extract", sublabel: "AI reads fields", icon: Cpu },
-  { key: "verify" as const, label: "Verify", sublabel: "Check protocol", icon: ClipboardCheck },
+  { key: "extract" as const, label: "Extract", sublabel: "AI reads", icon: Cpu },
+  { key: "verify" as const, label: "Verify", sublabel: "Check rules", icon: ClipboardCheck },
   { key: "classify" as const, label: "Confirm", sublabel: "Human decides", icon: UserCheck },
 ];
 
@@ -35,37 +35,42 @@ export function Pipeline({ currentStage }: PipelineProps) {
           return (
             <React.Fragment key={stage.key}>
               <li
-                className={`flex-1 flex flex-col items-center text-center px-2 py-3 transition-colors duration-200 ${
+                className={`flex-1 flex flex-col items-center text-center px-2 py-2 transition-all duration-300 ${
                   isActive
-                    ? "text-ink"
+                    ? "text-white"
                     : isComplete
-                      ? "text-triage-homecare"
-                      : "text-ink-muted"
+                      ? "text-emerald-400"
+                      : "text-slate-600"
                 }`}
               >
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center mb-1.5 transition-all duration-200 ${
+                  className={`relative w-10 h-10 rounded-full flex items-center justify-center mb-1.5 transition-all duration-300 ${
                     isActive
-                      ? "bg-ink text-ink-inverse"
+                      ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30 scale-110"
                       : isComplete
-                        ? "bg-triage-homecare text-white"
-                        : "bg-surface-inset text-ink-muted"
+                        ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
+                        : "bg-slate-800/50 border border-slate-700/50 text-slate-600"
                   }`}
                 >
+                  {isActive && (
+                    <div className="absolute inset-0 rounded-full border border-blue-400/40 animate-pulse" />
+                  )}
                   <Icon className="w-4 h-4" strokeWidth={2} />
                 </div>
-                <span className="type-micro block leading-tight">{stage.label}</span>
-                <span className="text-[0.625rem] leading-tight text-ink-muted mt-0.5 hidden sm:block">
+                <span className="text-[0.6875rem] font-semibold block leading-tight">{stage.label}</span>
+                <span className="text-[0.5625rem] leading-tight text-slate-600 mt-0.5 hidden sm:block">
                   {stage.sublabel}
                 </span>
               </li>
               {i < STAGES.length - 1 && (
                 <li className="flex items-center" aria-hidden="true">
                   <div
-                    className={`w-8 sm:w-12 h-px transition-colors duration-200 ${
+                    className={`h-0.5 w-8 sm:w-14 rounded-full transition-all duration-500 ${
                       currentIndex > stageIndex
-                        ? "bg-triage-homecare"
-                        : "bg-rule-strong"
+                        ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
+                        : currentIndex === stageIndex
+                          ? "bg-gradient-to-r from-blue-500 to-cyan-400"
+                          : "bg-slate-800"
                     }`}
                   />
                 </li>
