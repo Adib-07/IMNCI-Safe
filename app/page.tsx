@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { ImnciAssessment } from "@/lib/types";
 import { evaluateImnciProtocol } from "@/lib/imnci-rules";
 import { Header } from "@/components/Header";
@@ -19,67 +19,122 @@ import {
   Lock,
 } from "lucide-react";
 
+type PipelineStage = "idle" | "input" | "extract" | "verify" | "classify";
+
 export default function ImnciDashboard() {
   const [inputText, setInputText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [assessment, setAssessment] = useState<ImnciAssessment | null>(null);
   const [isFallback, setIsFallback] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pipelineStage, setPipelineStage] = useState<PipelineStage>("idle");
+  const [inputError, setInputError] = useState<string | null>(null);
 
   const protocolResult = assessment ? evaluateImnciProtocol(assessment) : null;
 
-  const pipelineStage = isExtracting
-    ? "extract"
-    : assessment
-      ? "verify"
-      : "idle";
-
-  const handleExtract = async (overrideText?: string, useMockId?: string) => {
-    const textToAnalyze = overrideText !== undefined ? overrideText : inputText;
-    if (!textToAnalyze.trim()) return;
-
-    setIsExtracting(true);
-    setAssessment(null);
+  const clearError = useCallback(() => {
+    setInputError(null);
     setError(null);
-    try {
-      const res = await fetch("/api/extract", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: useMockId ? useMockId : textToAnalyze,
-          useMock: !!useMockId,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error(`Extraction failed (${res.status})`);
-      }
-      const data = await res.json();
-      setAssessment(data.assessment);
-      setIsFallback(data.isFallback);
-    } catch (err) {
-      console.error(err);
-      setError("Extraction failed. Using fallback fixture for demo.");
-      setIsFallback(true);
-      setAssessment({
-        facts: {
-          patient_age_months: "unknown",
-          has_cough_or_difficult_breathing: "unknown",
-          respiratory_rate: "unknown",
-          fast_breathing_reported: "unknown",
-          chest_indrawing: "unknown",
-          stridor_in_calm_child: "unknown",
-          danger_signs: {
-            unable_to_drink_or_breastfeed: "unknown",
-            vomits_everything: "unknown",
-            has_convulsions: "unknown",
-            lethargic_or_unconscious: "unknown",
-          },
-        },
-      });
-    } finally {
-      setIsExtracting(false);
+  }, []);
+
+  const handleProcessNotes = useCallback(() => {
+    const trimmed = inputText.trim();
+    if (!trimmed) {
+      setInputError("Please enter clinical notes before processing.");
+      return;
     }
-  };
+    setInputError(null);
+    setError(null);
+    setAssessment(null);
+    setIsFallback(false);
+
+    // Step 2: Extract (1.5s delay)
+    setPipelineStage("extract");
+    setIsExtracting(true);
+
+    setTimeout(() => {
+      // Step 3: Verify — still extracting (loading skeletons in right card)
+      setPipelineStage("verify");
+
+      setTimeout(() => {
+        // Step 4: Confirm — show success with mock parsed data
+        setPipelineStage("classify");
+        setIsExtracting(false);
+        setIsFallback(true);
+        setAssessment({
+          facts: {
+            patient_age_months: 14,
+            has_cough_or_difficult_breathing: true,
+            respiratory_rate: 48,
+            fast_breathing_reported: true,
+            chest_indrawing: false,
+            stridor_in_calm_child: false,
+            danger_signs: {
+              unable_to_drink_or_breastfeed: true,
+              vomits_everything: false,
+              has_convulsions: false,
+              lethargic_or_unconscious: false,
+            },
+          },
+        });
+      }, 1000);
+    }, 1500);
+  }, [inputText]);
+
+  const handleExtract = useCallback(
+    async (overrideText?: string, useMockId?: string) => {
+      const textToAnalyze = overrideText !== undefined ? overrideText : inputText;
+      if (!textToAnalyze.trim()) return;
+
+      setInputError(null);
+      setError(null);
+      setIsExtracting(true);
+      setAssessment(null);
+      setPipelineStage("extract");
+
+      try {
+        const res = await fetch("/api/extract", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: useMockId ? useMockId : textToAnalyze,
+            useMock: !!useMockId,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`Extraction failed (${res.status})`);
+        }
+        const data = await res.json();
+        setAssessment(data.assessment);
+        setIsFallback(data.isFallback);
+        setPipelineStage("classify");
+      } catch (err) {
+        console.error(err);
+        setError("Extraction failed. Using fallback fixture for demo.");
+        setIsFallback(true);
+        setAssessment({
+          facts: {
+            patient_age_months: "unknown",
+            has_cough_or_difficult_breathing: "unknown",
+            respiratory_rate: "unknown",
+            fast_breathing_reported: "unknown",
+            chest_indrawing: "unknown",
+            stridor_in_calm_child: "unknown",
+            danger_signs: {
+              unable_to_drink_or_breastfeed: "unknown",
+              vomits_everything: "unknown",
+              has_convulsions: "unknown",
+              lethargic_or_unconscious: "unknown",
+            },
+          },
+        });
+        setPipelineStage("classify");
+      } finally {
+        setIsExtracting(false);
+      }
+    },
+    [inputText]
+  );
 
   const updateFact = (
     key: string,
@@ -106,10 +161,15 @@ export default function ImnciDashboard() {
     setAssessment(null);
     setIsFallback(false);
     setError(null);
+    setInputError(null);
+    setPipelineStage("idle");
+    setIsExtracting(false);
   };
 
+  const showVerification = !!assessment;
+
   return (
-    <div className="min-h-screen bg-[#0B0F19] flex flex-col">
+    <div className="min-h-screen bg-[#0B0F19] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-[#0B0F19] to-[#0B0F19] flex flex-col">
       <Header onReset={resetAll} showReset={!!assessment || isExtracting} isFallback={assessment ? isFallback : null} />
 
       {/* ── Hero ── */}
@@ -166,14 +226,20 @@ export default function ImnciDashboard() {
           {/* Panel 1: Input */}
           <InputPanel
             inputText={inputText}
-            onInputChange={setInputText}
+            onInputChange={(text) => {
+              setInputText(text);
+              if (inputError) setInputError(null);
+            }}
             onExtract={handleExtract}
+            onProcessNotes={handleProcessNotes}
+            inputError={inputError}
             isExtracting={isExtracting}
+            isProcessing={isExtracting}
             isDisabled={false}
           />
 
           {/* Panel 2: Verification */}
-          {assessment && (
+          {showVerification && (
             <VerificationPanel
               assessment={assessment}
               isExtracting={isExtracting}
@@ -182,7 +248,7 @@ export default function ImnciDashboard() {
             />
           )}
 
-          {!assessment && !isExtracting && (
+          {!showVerification && (
             <div className="hidden lg:flex rounded-2xl border border-slate-800 bg-slate-900/30 backdrop-blur-xl items-center justify-center py-12">
               <div className="text-center px-6">
                 <div className="w-14 h-14 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mx-auto mb-4 relative">
@@ -199,12 +265,12 @@ export default function ImnciDashboard() {
             </div>
           )}
 
-          {!assessment && !isExtracting && (
+          {!showVerification && (
             <div className="lg:hidden" />
           )}
 
           {/* Panel 3: Classification */}
-          <ReferralCard result={protocolResult} assessment={assessment} />
+          <ReferralCard result={protocolResult} assessment={assessment} isExtracting={isExtracting} />
         </div>
       </section>
 

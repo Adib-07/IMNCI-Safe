@@ -8,12 +8,15 @@ import {
   Activity,
   XCircle,
   Info,
+  Radar,
+  ShieldCheck,
 } from "lucide-react";
 import type { ProtocolResult, TriageColor, ImnciAssessment } from "@/lib/types";
 
 interface ReferralCardProps {
   result: ProtocolResult | null;
   assessment: ImnciAssessment | null;
+  isExtracting?: boolean;
 }
 
 const COLOR_CONFIG: Record<
@@ -95,9 +98,80 @@ function buildFiredRuleText(result: ProtocolResult, assessment: ImnciAssessment 
   return "";
 }
 
-export function ReferralCard({ result, assessment }: ReferralCardProps) {
+function EmptyState() {
+  return (
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl backdrop-blur-xl p-6 flex flex-col overflow-hidden">
+      <div className="flex items-center gap-2 mb-5">
+        <div className="w-7 h-7 rounded-lg bg-slate-800/50 border border-slate-700/50 flex items-center justify-center">
+          <Info className="w-3.5 h-3.5 text-slate-500" />
+        </div>
+        <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Protocol Classification</h2>
+      </div>
+      <div className="flex-1 flex items-center justify-center py-10">
+        <div className="text-center">
+          <div className="relative w-16 h-16 mx-auto mb-5">
+            {/* Radar rings */}
+            <div className="absolute inset-0 rounded-full border border-emerald-500/10 animate-ping" style={{ animationDuration: "3s" }} />
+            <div className="absolute inset-2 rounded-full border border-emerald-500/15 animate-ping" style={{ animationDuration: "2.5s", animationDelay: "0.5s" }} />
+            <div className="absolute inset-4 rounded-full border border-emerald-500/20 animate-ping" style={{ animationDuration: "2s", animationDelay: "1s" }} />
+            {/* Center dot */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full bg-emerald-500/40 shadow-lg shadow-emerald-500/30" />
+            </div>
+          </div>
+          <p className="text-sm text-slate-400 font-medium mb-1">
+            Waiting for clinical input
+          </p>
+          <p className="text-xs text-slate-600">
+            Paste notes or select a case to begin classification
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LoadingState() {
+  return (
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl backdrop-blur-xl p-6 flex flex-col overflow-hidden">
+      <div className="flex items-center gap-2 mb-5">
+        <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+          <div className="spinner !w-3.5 !h-3.5 !border-[1.5px]" />
+        </div>
+        <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Protocol Classification</h2>
+      </div>
+      <div className="flex-1 flex flex-col gap-3 py-4">
+        {/* Skeleton: classification name */}
+        <div className="h-5 w-48 bg-slate-800 rounded-lg animate-pulse" />
+        {/* Skeleton: triage badge */}
+        <div className="h-6 w-20 bg-slate-800 rounded-full animate-pulse" />
+        {/* Skeleton: rule fired */}
+        <div className="mt-3 rounded-xl border border-slate-700/30 p-3 space-y-2">
+          <div className="h-3 w-24 bg-slate-800 rounded animate-pulse" />
+          <div className="h-4 w-64 bg-slate-800 rounded animate-pulse" />
+        </div>
+        {/* Skeleton: treatment */}
+        <div className="space-y-1.5 mt-1">
+          <div className="h-3 w-full bg-slate-800 rounded animate-pulse" />
+          <div className="h-3 w-3/4 bg-slate-800 rounded animate-pulse" />
+        </div>
+      </div>
+      <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center gap-2">
+        <div className="spinner !w-3 !h-3 !border-[1px]" />
+        <span className="text-xs text-slate-500">Evaluating IMNCI protocol rules...</span>
+      </div>
+    </section>
+  );
+}
+
+export function ReferralCard({ result, assessment, isExtracting = false }: ReferralCardProps) {
   const [animating, setAnimating] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
   const prevWasBlocked = useRef(false);
+
+  useEffect(() => {
+    setConfirmed(false);
+  }, [result]);
 
   useEffect(() => {
     const wasBlocked = prevWasBlocked.current;
@@ -110,31 +184,12 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
     prevWasBlocked.current = result?.status === "NEEDS_CONFIRMATION";
   }, [result]);
 
+  if (isExtracting) {
+    return <LoadingState />;
+  }
+
   if (!result) {
-    return (
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl flex flex-col overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-800/60 flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-slate-800/50 border border-slate-700/50 flex items-center justify-center">
-            <Info className="w-3.5 h-3.5 text-slate-500" />
-          </div>
-          <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Protocol Classification</h2>
-        </div>
-        <div className="flex-1 flex items-center justify-center py-10">
-          <div className="text-center">
-            <div className="w-14 h-14 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mx-auto mb-4 relative">
-              <Info className="w-6 h-6 text-slate-600" />
-              <div className="absolute inset-0 rounded-full border border-slate-700/30 animate-pulse" />
-            </div>
-            <p className="text-sm text-slate-400 font-medium mb-1">
-              Complete verification to reveal classification
-            </p>
-            <p className="text-xs text-slate-600">
-              Or run a case from the input panel
-            </p>
-          </div>
-        </div>
-      </section>
-    );
+    return <EmptyState />;
   }
 
   const isBlocked = result.status === "NEEDS_CONFIRMATION";
@@ -145,15 +200,15 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
   const firedRule = buildFiredRuleText(result, assessment);
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl flex flex-col overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-800/60 flex items-center gap-2">
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 shadow-xl backdrop-blur-xl p-6 flex flex-col overflow-hidden">
+      <div className="flex items-center gap-2 mb-5">
         <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
         </div>
         <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Protocol Classification</h2>
       </div>
 
-      <div className="p-5 flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col">
         <div
           className={`rounded-xl border-2 p-5 transition-all duration-300 ${
             isBlocked
@@ -264,6 +319,39 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
             </p>
           )}
         </div>
+
+        {/* Confirm Decision */}
+        {!isBlocked && !isOoc && (
+          <div className="mt-4 rounded-xl border border-slate-700/50 bg-slate-800/30 p-4">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="relative mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={confirmed}
+                  onChange={(e) => setConfirmed(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className={`w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center ${
+                  confirmed
+                    ? "bg-emerald-500 border-emerald-500"
+                    : "border-slate-600 group-hover:border-slate-500"
+                }`}>
+                  {confirmed && (
+                    <ShieldCheck className="w-3 h-3 text-white" strokeWidth={3} />
+                  )}
+                </div>
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
+                  Confirm Decision
+                </span>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  I have reviewed the extracted facts and classification. This result is clinically appropriate.
+                </p>
+              </div>
+            </label>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center gap-4">

@@ -44,18 +44,22 @@ export function Pipeline({ currentStage }: PipelineProps) {
                 }`}
               >
                 <div
-                  className={`relative w-10 h-10 rounded-full flex items-center justify-center mb-1.5 transition-all duration-300 ${
+                  className={`group relative w-10 h-10 rounded-full flex items-center justify-center mb-1.5 transition-all duration-300 hover:scale-105 ${
                     isActive
-                      ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30 scale-110"
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-110"
                       : isComplete
-                        ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
-                        : "bg-slate-800/50 border border-slate-700/50 text-slate-600"
+                        ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                        : "bg-slate-800 text-slate-500 border border-slate-700"
                   }`}
                 >
                   {isActive && (
                     <div className="absolute inset-0 rounded-full border border-blue-400/40 animate-pulse" />
                   )}
-                  <Icon className="w-4 h-4" strokeWidth={2} />
+                  {isComplete ? (
+                    <span className="text-sm font-bold">✓</span>
+                  ) : (
+                    <span className="text-sm font-bold">{i + 1}</span>
+                  )}
                 </div>
                 <span className="text-[0.6875rem] font-semibold block leading-tight">{stage.label}</span>
                 <span className="text-[0.5625rem] leading-tight text-slate-600 mt-0.5 hidden sm:block">

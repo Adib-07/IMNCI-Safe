@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export function Header({ onReset, showReset, isFallback }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-20 backdrop-blur-md bg-[#0B0F19]/80 border-b border-slate-800/60">
+    <header className="sticky top-0 z-20 backdrop-blur-md bg-slate-900/80 border-b border-slate-800">
       <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20">
@@ -22,13 +22,13 @@ export function Header({ onReset, showReset, isFallback }: HeaderProps) {
             <h1 className="text-base font-semibold text-white leading-none tracking-tight">
               IMNCI-Safe
             </h1>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
               <span className="text-[0.625rem] font-semibold text-emerald-400 tracking-wider uppercase hidden sm:block">
-                Protocol Engine Online
+                PROTOCOL ENGINE ONLINE
               </span>
             </div>
           </div>
