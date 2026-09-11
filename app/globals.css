@@ -1,59 +1,49 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* ── IMNCI Status Colors (official hex pairs) ── */
-  --color-pink-bg: #FEE2E2;
-  --color-pink-accent: #DC2626;
-  --color-pink-border: #FCA5A5;
+  /* ── IMNCI Triage Colors (desaturated, institutional) ── */
+  --color-triage-urgent: #8B2332;
+  --color-triage-urgent-bg: #F5E0E3;
+  --color-triage-urgent-border: #D4A0A8;
 
-  --color-yellow-bg: #FEF9C3;
-  --color-yellow-accent: #CA8A04;
-  --color-yellow-border: #FDE047;
+  --color-triage-treatment: #A17D1A;
+  --color-triage-treatment-bg: #F5EDD4;
+  --color-triage-treatment-border: #D4C88A;
 
-  --color-green-bg: #DCFCE7;
-  --color-green-accent: #16A34A;
-  --color-green-border: #86EFAC;
+  --color-triage-homecare: #2D7A4F;
+  --color-triage-homecare-bg: #DDE9E1;
+  --color-triage-homecare-border: #A0C4AC;
 
-  --color-amber-bg: #FFEDD5;
-  --color-amber-accent: #EA580C;
-  --color-amber-border: #FDBA74;
+  --color-triage-blocked: #B45309;
+  --color-triage-blocked-bg: #F5E6D0;
+  --color-triage-blocked-border: #D4B88A;
 
-  /* ── Neutral Surface Colors ── */
-  --color-surface-page: #F8F9FA;
+  /* ── Surfaces ── */
+  --color-surface-page: #F4F3F0;
   --color-surface-card: #FFFFFF;
-  --color-surface-inset: #F1F5F9;
-  --color-surface-hover: #E2E8F0;
+  --color-surface-inset: #EDECEA;
 
-  /* ── Border / Divider ── */
-  --color-border-default: #E2E8F0;
-  --color-border-strong: #CBD5E1;
+  /* ── Ink (text) ── */
+  --color-ink: #1A1D23;
+  --color-ink-secondary: #4A4E57;
+  --color-ink-muted: #8A8E96;
+  --color-ink-inverse: #FFFFFF;
 
-  /* ── Text Hierarchy ── */
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #475569;
-  --color-text-tertiary: #94A3B8;
-  --color-text-inverse: #FFFFFF;
+  /* ── Structural ── */
+  --color-rule: #DDDCC8;
+  --color-rule-strong: #B8B6A8;
 
-  /* ── Clinical Accent (primary action — NOT generic blue) ── */
-  --color-action-primary: #1E40AF;
-  --color-action-primary-hover: #1E3A8A;
-  --color-action-primary-text: #FFFFFF;
-
-  /* ── Focus Ring ── */
-  --color-focus-ring: rgba(71, 85, 105, 0.3);
-
-  /* ── Neutral Dark (buttons) ── */
-  --color-neutral-dark: #0F172A;
-  --color-neutral-dark-hover: #1E293B;
+  /* ── Focus ── */
+  --color-focus-ring: rgba(26, 29, 35, 0.35);
 
   /* ── Fonts ── */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-source-sans), system-ui, -apple-system, sans-serif;
 }
 
 :root {
   --background: var(--color-surface-page);
-  --foreground: var(--color-text-primary);
+  --foreground: var(--color-ink);
 }
 
 *,
@@ -65,52 +55,72 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
 }
 
-/* ── Tabular numerics for clinical measurements ── */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
+/* ── Type Scale ── */
+.type-display {
+  font-family: var(--font-serif);
+  font-size: 2.25rem;
+  line-height: 2.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variation-settings: "opsz" 36;
 }
 
-/* ── Clinical type scale ── */
-.type-display {
-  font-size: 1.5rem;
-  line-height: 2rem;
+.type-display-sm {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  line-height: 2.25rem;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
+  font-variation-settings: "opsz" 24;
 }
 
 .type-title {
-  font-size: 1.125rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
   line-height: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 18;
 }
 
-.type-label {
-  font-size: 0.6875rem;
-  line-height: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
+.type-subtitle {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  color: var(--color-ink-secondary);
 }
 
 .type-body {
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+}
+
+.type-body-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
   font-weight: 400;
 }
 
 .type-caption {
-  font-size: 0.75rem;
-  line-height: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   font-weight: 500;
+}
+
+.type-label {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
 }
 
 .type-micro {
@@ -120,7 +130,13 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* ── Status card animation ── */
+/* ── Tabular numerics ── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── Animations ── */
 @keyframes unlock-resolve {
   0% { transform: scale(1); }
   15% { transform: scale(0.97); }
@@ -129,10 +145,9 @@ body {
 }
 
 .animate-unlock {
-  animation: unlock-resolve 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: unlock-resolve 0.5s cubic-bezier(0.34, 1.64, 0.64, 1) forwards;
 }
 
-/* ── Subtle fade-in for content ── */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -148,7 +163,6 @@ body {
   animation: fade-in-up 0.3s ease-out forwards;
 }
 
-/* ── Spinner ── */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -156,17 +170,28 @@ body {
 .spinner {
   width: 1.5rem;
   height: 1.5rem;
-  border: 2px solid var(--color-border-default);
-  border-top-color: var(--color-neutral-dark);
+  border: 2px solid var(--color-rule);
+  border-top-color: var(--color-ink);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
 
-/* ── Segmented control ── */
+/* ── Pipeline stage animation ── */
+@keyframes stage-light {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.pipeline-stage-active {
+  animation: stage-light 0.8s ease-in-out forwards;
+}
+
+/* ── Segment Control ── */
 .segmented-control {
   display: flex;
-  border: 1px solid var(--color-border-default);
-  border-radius: 0.375rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 3px;
   overflow: hidden;
   background: var(--color-surface-inset);
 }
@@ -179,10 +204,11 @@ body {
   line-height: 1rem;
   border: none;
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--color-ink-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
-  border-right: 1px solid var(--color-border-default);
+  border-right: 1px solid var(--color-rule);
+  font-family: var(--font-sans);
 }
 
 .segmented-control button:last-child {
@@ -190,36 +216,62 @@ body {
 }
 
 .segmented-control button:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-page);
 }
 
 .segmented-control button:focus-visible {
-  outline: 2px solid var(--color-action-primary);
+  outline: 2px solid var(--color-ink);
   outline-offset: -2px;
   z-index: 1;
 }
 
 .segmented-control button.active-yes {
-  background: var(--color-pink-bg);
-  color: var(--color-pink-accent);
+  background: var(--color-triage-urgent-bg);
+  color: var(--color-triage-urgent);
   font-weight: 600;
 }
 
 .segmented-control button.active-no {
-  background: var(--color-green-bg);
-  color: var(--color-green-accent);
+  background: var(--color-triage-homecare-bg);
+  color: var(--color-triage-homecare);
   font-weight: 600;
 }
 
 .segmented-control button.active-unknown {
-  background: var(--color-amber-bg);
-  color: var(--color-amber-accent);
+  background: var(--color-triage-blocked-bg);
+  color: var(--color-triage-blocked);
   font-weight: 600;
 }
 
-/* ── Custom scrollbar ── */
+/* ── IMNCI Chart Row ── */
+.chart-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.chart-row:last-child {
+  border-bottom: none;
+}
+
+.chart-row-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.chart-row-control {
+  flex-shrink: 0;
+}
+
+/* ── Custom Scrollbar ── */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -227,6 +279,67 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-border-strong);
+  background: var(--color-rule-strong);
   border-radius: 2px;
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .spinner {
+    animation: spin 1.2s linear infinite;
+  }
+}
+
+/* ── Focus Ring Utility ── */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* ── Hairline Rule ── */
+.hairline-rule {
+  border: none;
+  border-top: 1px solid var(--color-rule);
+}
+
+/* ── Pipeline connector ── */
+.pipeline-connector {
+  width: 1px;
+  background: var(--color-rule-strong);
+  flex-shrink: 0;
+}
+
+/* ── Checklist indicator ── */
+.check-indicator {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--color-rule-strong);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.check-indicator.checked {
+  background: var(--color-triage-homecare);
+  border-color: var(--color-triage-homecare);
+}
+
+.check-indicator.checked::after {
+  content: "";
+  width: 6px;
+  height: 3px;
+  border-left: 1.5px solid white;
+  border-bottom: 1.5px solid white;
+  transform: rotate(-45deg) translateY(-1px);
 }

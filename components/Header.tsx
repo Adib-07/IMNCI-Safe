@@ -11,48 +11,47 @@ interface HeaderProps {
 
 export function Header({ onReset, showReset, isFallback }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border-default bg-surface-card/95 backdrop-blur-sm">
-      <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-7 h-7 rounded bg-action-primary text-action-primary-text">
-            <Shield className="w-4 h-4" strokeWidth={2.5} />
+    <header className="sticky top-0 z-20 border-b border-rule bg-surface-page/95 backdrop-blur-sm">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-8 h-8 rounded bg-ink text-ink-inverse">
+            <Shield className="w-4.5 h-4.5" strokeWidth={2} />
           </div>
-          <div className="flex items-baseline gap-2.5">
-            <h1 className="type-title text-text-primary leading-none">
+          <div>
+            <h1 className="type-title text-ink leading-none">
               IMNCI-Safe
             </h1>
-            <span className="hidden sm:inline-block type-micro text-text-tertiary">Clinical Decision Support</span>
+            <p className="type-caption text-ink-muted mt-0.5 hidden sm:block">
+              Clinical Decision Support
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <div className="hidden sm:flex items-center gap-1 type-micro text-text-secondary tracking-tight" style={{ fontFamily: "var(--font-mono), monospace" }}>
-            <span className="font-semibold text-text-primary">AI</span>
-            <span>Extracts</span>
-            <span className="text-text-tertiary mx-0.5">&middot;</span>
-            <span className="font-semibold text-text-primary">Rules</span>
-            <span>Decide</span>
-            <span className="text-text-tertiary mx-0.5">&middot;</span>
-            <span className="font-semibold text-text-primary">You</span>
-            <span>Confirm</span>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 type-caption text-ink-secondary">
+            <span className="font-semibold text-ink">AI extracts</span>
+            <span className="text-ink-muted">&rarr;</span>
+            <span className="font-semibold text-ink">rules decide</span>
+            <span className="text-ink-muted">&rarr;</span>
+            <span className="font-semibold text-ink">you confirm</span>
           </div>
 
           {showReset && (
             <div className="flex items-center gap-2">
               {isFallback !== null && (
                 <span
-                  className={`type-micro px-2 py-0.5 rounded ${
+                  className={`type-micro px-2 py-0.5 rounded-sm ${
                     isFallback
-                      ? "text-amber-accent bg-amber-bg border border-amber-border"
-                      : "text-green-accent bg-green-bg border border-green-border"
+                      ? "text-triage-blocked bg-triage-blocked-bg border border-triage-blocked-border"
+                      : "text-triage-homecare bg-triage-homecare-bg border border-triage-homecare-border"
                   }`}
                 >
-                  {isFallback ? "Demo Fallback" : "Live"}
+                  {isFallback ? "Demo" : "Live"}
                 </span>
               )}
               <button
                 onClick={onReset}
-                className="flex items-center gap-1.5 type-caption text-white bg-neutral-dark hover:bg-neutral-dark-hover px-2.5 py-1.5 rounded-[4px] transition-colors"
+                className="flex items-center gap-1.5 type-caption text-ink-inverse bg-ink hover:bg-ink-secondary px-3 py-1.5 rounded-sm transition-colors focus-ring"
                 title="Start New Case"
               >
                 <RotateCcw className="w-3.5 h-3.5" />

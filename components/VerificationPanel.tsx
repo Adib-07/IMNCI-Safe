@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, HelpCircle, Check } from "lucide-react";
+import { Search, HelpCircle } from "lucide-react";
 import { SegmentedControl } from "./SegmentedControl";
 import type { ImnciAssessment } from "@/lib/types";
 
@@ -16,7 +16,7 @@ interface VerificationPanelProps {
   ) => void;
 }
 
-function FieldRow({
+function ChartFieldRow({
   label,
   value,
   evidence,
@@ -30,27 +30,23 @@ function FieldRow({
   const isConfirmed = value !== "unknown";
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex items-start justify-between gap-3 mb-1.5">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            {isConfirmed ? (
-              <Check className="w-3.5 h-3.5 text-green-accent flex-shrink-0" />
-            ) : (
-              <HelpCircle className="w-3.5 h-3.5 text-amber-accent flex-shrink-0" />
-            )}
-            <span className="type-body font-medium text-text-primary truncate">
-              {label}
-            </span>
-          </div>
+    <div className="chart-row">
+      <div className="chart-row-label">
+        <div className={`check-indicator ${isConfirmed ? "checked" : ""}`} />
+        <div className="min-w-0">
+          <span className="type-body-sm font-medium text-ink block">
+            {label}
+          </span>
           {evidence && isConfirmed && (
-            <p className="type-caption text-text-tertiary mt-1 ml-5 italic border-l-2 border-border-default pl-2">
+            <p className="type-caption text-ink-muted mt-0.5 italic border-l-2 border-rule pl-2 ml-5">
               &quot;{evidence}&quot;
             </p>
           )}
         </div>
       </div>
-      <div className="ml-5">{children}</div>
+      <div className="chart-row-control">
+        {children}
+      </div>
     </div>
   );
 }
@@ -69,7 +65,7 @@ function NumberInput({
     <input
       type="text"
       inputMode="numeric"
-      className="w-full max-w-[120px] px-2.5 py-1.5 type-body text-text-primary bg-surface-inset border border-border-default rounded-[4px] focus:outline-none focus:ring-2 focus:ring-slate-400/30 focus:border-border-strong placeholder:text-text-tertiary tabular-nums"
+      className="w-full max-w-[110px] px-2.5 py-1.5 type-body-sm text-ink bg-surface-inset border border-rule rounded-sm focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-rule-strong placeholder:text-ink-muted tabular-nums"
       placeholder={placeholder || "unknown"}
       value={displayVal}
       onChange={(e) => onChange(e.target.value || "unknown")}
@@ -93,48 +89,48 @@ export function VerificationPanel({
   };
 
   return (
-    <section className="bg-surface-card border border-border-default rounded-[6px] flex flex-col overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-border-default flex items-center justify-between">
+    <section className="bg-surface-card border border-rule flex flex-col overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-rule flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Search className="w-3.5 h-3.5 text-text-tertiary" />
-          <h2 className="type-label">Verification</h2>
+          <Search className="w-4 h-4 text-ink-muted" />
+          <h2 className="type-label">Extracted Facts</h2>
         </div>
         {isFallback && (
-          <span className="type-micro text-amber-accent bg-amber-bg border border-amber-border px-2 py-0.5 rounded">
-            [DEMO FALLBACK FIXTURE]
+          <span className="type-micro text-triage-blocked bg-triage-blocked-bg border border-triage-blocked-border px-2 py-0.5 rounded-sm">
+            DEMO FIXTURE
           </span>
         )}
       </div>
 
       <div className="p-4 overflow-y-auto flex-1 custom-scrollbar max-h-[calc(100vh-220px)]">
         {!assessment && !isExtracting && (
-          <div className="flex flex-col items-center justify-center py-12 text-text-tertiary gap-2">
+          <div className="flex flex-col items-center justify-center py-12 text-ink-muted gap-2">
             <HelpCircle className="w-8 h-8 opacity-20" />
-            <p className="type-body">Awaiting extraction</p>
+            <p className="type-body-sm">Awaiting extraction</p>
           </div>
         )}
 
         {isExtracting && (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
             <div className="spinner" />
-            <p className="type-body text-text-secondary animate-pulse">
-              Extracting facts from assessment…
+            <p className="type-body-sm text-ink-secondary animate-pulse">
+              Extracting facts from assessment...
             </p>
-            <p className="type-caption text-text-tertiary">
+            <p className="type-caption text-ink-muted">
               Gemini is analyzing clinical notes
             </p>
           </div>
         )}
 
         {assessment && !isExtracting && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="animate-fade-in">
             {/* Patient Information */}
-            <div>
-              <h3 className="type-micro text-text-tertiary uppercase mb-3">
-                Patient Information
+            <div className="mb-4">
+              <h3 className="type-micro text-ink-muted mb-2">
+                PATIENT INFORMATION
               </h3>
-              <div className="space-y-3">
-                <FieldRow
+              <div>
+                <ChartFieldRow
                   label="Age (months)"
                   value={f.patient_age_months}
                   evidence={ev?.age_evidence}
@@ -145,9 +141,9 @@ export function VerificationPanel({
                       onUpdateFact("patient_age_months", parseNum(v))
                     }
                   />
-                </FieldRow>
+                </ChartFieldRow>
 
-                <FieldRow
+                <ChartFieldRow
                   label="Cough / Difficult Breathing"
                   value={f.has_cough_or_difficult_breathing}
                   evidence={ev?.cough_evidence}
@@ -161,10 +157,10 @@ export function VerificationPanel({
                       )
                     }
                   />
-                </FieldRow>
+                </ChartFieldRow>
 
                 {f.has_cough_or_difficult_breathing !== false && (
-                  <FieldRow
+                  <ChartFieldRow
                     label="Respiratory Rate (breaths/min)"
                     value={f.respiratory_rate}
                     evidence={ev?.respiratory_evidence}
@@ -176,18 +172,20 @@ export function VerificationPanel({
                       }
                       placeholder="counted bpm"
                     />
-                  </FieldRow>
+                  </ChartFieldRow>
                 )}
               </div>
             </div>
 
+            <hr className="hairline-rule my-3" />
+
             {/* Danger Signs */}
-            <div>
-              <h3 className="type-micro text-text-tertiary uppercase mb-3">
-                4 General Danger Signs
+            <div className="mb-4">
+              <h3 className="type-micro text-ink-muted mb-2">
+                4 GENERAL DANGER SIGNS
               </h3>
-              <div className="space-y-3">
-                <FieldRow
+              <div>
+                <ChartFieldRow
                   label="Unable to drink or breastfeed"
                   value={f.danger_signs.unable_to_drink_or_breastfeed}
                   evidence={ev?.danger_signs_evidence}
@@ -202,9 +200,9 @@ export function VerificationPanel({
                       )
                     }
                   />
-                </FieldRow>
+                </ChartFieldRow>
 
-                <FieldRow
+                <ChartFieldRow
                   label="Vomits everything"
                   value={f.danger_signs.vomits_everything}
                   evidence={ev?.danger_signs_evidence}
@@ -219,9 +217,9 @@ export function VerificationPanel({
                       )
                     }
                   />
-                </FieldRow>
+                </ChartFieldRow>
 
-                <FieldRow
+                <ChartFieldRow
                   label="Has convulsions"
                   value={f.danger_signs.has_convulsions}
                   evidence={ev?.danger_signs_evidence}
@@ -236,9 +234,9 @@ export function VerificationPanel({
                       )
                     }
                   />
-                </FieldRow>
+                </ChartFieldRow>
 
-                <FieldRow
+                <ChartFieldRow
                   label="Lethargic or unconscious"
                   value={f.danger_signs.lethargic_or_unconscious}
                   evidence={ev?.danger_signs_evidence}
@@ -253,17 +251,19 @@ export function VerificationPanel({
                       )
                     }
                   />
-                </FieldRow>
+                </ChartFieldRow>
               </div>
             </div>
 
-            {/* Physical Severity Signs */}
+            <hr className="hairline-rule my-3" />
+
+            {/* Respiratory Assessment */}
             <div>
-              <h3 className="type-micro text-text-tertiary uppercase mb-3">
-                Respiratory Assessment
+              <h3 className="type-micro text-ink-muted mb-2">
+                RESPIRATORY ASSESSMENT
               </h3>
-              <div className="space-y-3">
-                <FieldRow
+              <div>
+                <ChartFieldRow
                   label="Chest Indrawing"
                   value={f.chest_indrawing}
                   evidence={ev?.chest_indrawing_evidence}
@@ -277,9 +277,9 @@ export function VerificationPanel({
                       )
                     }
                   />
-                </FieldRow>
+                </ChartFieldRow>
 
-                <FieldRow
+                <ChartFieldRow
                   label="Stridor in calm child"
                   value={f.stridor_in_calm_child}
                   evidence={ev?.stridor_evidence}
@@ -293,7 +293,7 @@ export function VerificationPanel({
                       )
                     }
                   />
-                </FieldRow>
+                </ChartFieldRow>
               </div>
             </div>
           </div>

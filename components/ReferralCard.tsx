@@ -28,35 +28,35 @@ const COLOR_CONFIG: Record<
   }
 > = {
   PINK: {
-    bg: "bg-pink-bg",
-    border: "border-pink-border",
-    text: "text-pink-accent",
-    badge: "bg-pink-accent",
-    badgeText: "text-pink-bg",
+    bg: "bg-triage-urgent-bg",
+    border: "border-triage-urgent-border",
+    text: "text-triage-urgent",
+    badge: "bg-triage-urgent",
+    badgeText: "text-white",
     icon: AlertTriangle,
   },
   YELLOW: {
-    bg: "bg-yellow-bg",
-    border: "border-yellow-border",
-    text: "text-yellow-accent",
-    badge: "bg-yellow-accent",
-    badgeText: "text-yellow-bg",
+    bg: "bg-triage-treatment-bg",
+    border: "border-triage-treatment-border",
+    text: "text-triage-treatment",
+    badge: "bg-triage-treatment",
+    badgeText: "text-white",
     icon: Activity,
   },
   GREEN: {
-    bg: "bg-green-bg",
-    border: "border-green-border",
-    text: "text-green-accent",
-    badge: "bg-green-accent",
-    badgeText: "text-green-bg",
+    bg: "bg-triage-homecare-bg",
+    border: "border-triage-homecare-border",
+    text: "text-triage-homecare",
+    badge: "bg-triage-homecare",
+    badgeText: "text-white",
     icon: CheckCircle2,
   },
   AMBER: {
-    bg: "bg-amber-bg",
-    border: "border-amber-border",
-    text: "text-amber-accent",
-    badge: "bg-amber-accent",
-    badgeText: "text-amber-bg",
+    bg: "bg-triage-blocked-bg",
+    border: "border-triage-blocked-border",
+    text: "text-triage-blocked",
+    badge: "bg-triage-blocked",
+    badgeText: "text-white",
     icon: Lock,
   },
 };
@@ -83,7 +83,7 @@ function buildFiredRuleText(result: ProtocolResult, assessment: ImnciAssessment 
     const f = assessment?.facts;
     if (f && typeof f.patient_age_months === "number" && typeof f.respiratory_rate === "number") {
       const threshold = f.patient_age_months < 12 ? 50 : 40;
-      return `RR ${f.respiratory_rate} ≥ ${threshold} bpm (age ${f.patient_age_months}mo) → Fast breathing`;
+      return `RR ${f.respiratory_rate} >= ${threshold} bpm (age ${f.patient_age_months}mo) -- Fast breathing`;
     }
     return "Fast breathing detected for age cohort";
   }
@@ -92,7 +92,7 @@ function buildFiredRuleText(result: ProtocolResult, assessment: ImnciAssessment 
     const f = assessment?.facts;
     if (f && typeof f.patient_age_months === "number" && typeof f.respiratory_rate === "number") {
       const threshold = f.patient_age_months < 12 ? 50 : 40;
-      return `RR ${f.respiratory_rate} < ${threshold} bpm (age ${f.patient_age_months}mo) — No fast breathing`;
+      return `RR ${f.respiratory_rate} < ${threshold} bpm (age ${f.patient_age_months}mo) -- No fast breathing`;
     }
     return "No fast breathing, no danger signs, no severe physical signs";
   }
@@ -117,17 +117,17 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
 
   if (!result) {
     return (
-      <section className="bg-surface-card border-2 border-border-default border-t-[3px] border-t-text-tertiary rounded-[6px] flex flex-col overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-border-default flex items-center gap-2">
-          <Info className="w-3.5 h-3.5 text-text-tertiary" />
-          <h2 className="type-label">Classification</h2>
+      <section className="bg-surface-card border border-rule border-t-[3px] border-t-ink-muted flex flex-col overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-rule flex items-center gap-2">
+          <Info className="w-4 h-4 text-ink-muted" />
+          <h2 className="type-label">Protocol Classification</h2>
         </div>
-        <div className="flex-1 flex items-center justify-center py-6">
+        <div className="flex-1 flex items-center justify-center py-8">
           <div className="text-center">
             <div className="w-10 h-10 rounded-full bg-surface-inset flex items-center justify-center mx-auto mb-2">
-              <Info className="w-5 h-5 text-text-tertiary" />
+              <Info className="w-5 h-5 text-ink-muted" />
             </div>
-            <p className="type-body text-text-secondary">
+            <p className="type-body-sm text-ink-secondary">
               Complete verification to reveal classification
             </p>
           </div>
@@ -144,40 +144,40 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
   const firedRule = buildFiredRuleText(result, assessment);
 
   const topBorderColor = isBlocked
-    ? "var(--color-amber-accent)"
+    ? "var(--color-triage-blocked)"
     : isOoc
-      ? "var(--color-text-tertiary)"
-      : `var(--color-${color.toLowerCase()}-accent)`;
+      ? "var(--color-ink-muted)"
+      : `var(--color-triage-${color === "PINK" ? "urgent" : color === "YELLOW" ? "treatment" : "homecare"})`;
 
   return (
-    <section className="bg-surface-card border-2 border-border-default rounded-[6px] flex flex-col overflow-hidden" style={{ borderTopColor: topBorderColor, borderTopWidth: "3px" }}>
-      <div className="px-4 py-2.5 border-b border-border-default flex items-center gap-2">
-        <CheckCircle2 className="w-3.5 h-3.5 text-text-tertiary" />
-        <h2 className="type-label">Classification</h2>
+    <section className="bg-surface-card border border-rule rounded-sm flex flex-col overflow-hidden" style={{ borderTopColor: topBorderColor, borderTopWidth: "3px" }}>
+      <div className="px-4 py-2.5 border-b border-rule flex items-center gap-2">
+        <CheckCircle2 className="w-4 h-4 text-ink-muted" />
+        <h2 className="type-label">Protocol Classification</h2>
       </div>
 
       <div className="p-4 flex-1 flex flex-col">
         <div
-          className={`rounded-lg border-2 p-5 transition-all duration-300 ${
+          className={`rounded-sm border-2 p-5 transition-all duration-300 ${
             isBlocked
-              ? "bg-amber-bg border-amber-border"
+              ? "bg-triage-blocked-bg border-triage-blocked-border"
               : isOoc
-                ? "bg-surface-inset border-border-strong"
+                ? "bg-surface-inset border-rule-strong"
                 : `${cfg.bg} ${cfg.border}`
           } ${animating ? "animate-unlock" : ""}`}
         >
           {/* Header */}
           <div className="flex items-center gap-3 mb-3">
             {isBlocked ? (
-              <div className="w-9 h-9 rounded-full bg-amber-accent/10 flex items-center justify-center">
-                <Lock className="w-5 h-5 text-amber-accent" />
+              <div className="w-10 h-10 rounded-full bg-triage-blocked/10 flex items-center justify-center">
+                <Lock className="w-5 h-5 text-triage-blocked" />
               </div>
             ) : isOoc ? (
-              <div className="w-9 h-9 rounded-full bg-surface-hover flex items-center justify-center">
-                <XCircle className="w-5 h-5 text-text-secondary" />
+              <div className="w-10 h-10 rounded-full bg-surface-page flex items-center justify-center">
+                <XCircle className="w-5 h-5 text-ink-secondary" />
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-full bg-white/60 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-white/60 flex items-center justify-center">
                 <Icon className={`w-5 h-5 ${cfg.text}`} />
               </div>
             )}
@@ -185,9 +185,9 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
               <h3
                 className={`type-title ${
                   isBlocked
-                    ? "text-amber-accent"
+                    ? "text-triage-blocked"
                     : isOoc
-                      ? "text-text-primary"
+                      ? "text-ink"
                       : cfg.text
                 }`}
               >
@@ -199,7 +199,7 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
               </h3>
               {!isBlocked && !isOoc && (
                 <div
-                  className={`inline-block mt-1 px-2 py-0.5 rounded type-micro ${cfg.badge} ${cfg.badgeText}`}
+                  className={`inline-block mt-1 px-2 py-0.5 rounded-sm type-micro ${cfg.badge} ${cfg.badgeText}`}
                 >
                   {result.triage_color}
                 </div>
@@ -207,28 +207,28 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
             </div>
           </div>
 
-          {/* Blocked State — Missing Fields */}
+          {/* Blocked State */}
           {isBlocked && (
             <div className="space-y-3">
-              <p className="type-body text-amber-accent/80">
+              <p className="type-body-sm text-triage-blocked/80">
                 {result.treatment_instruction}
               </p>
-              <div className="bg-white/50 rounded-md p-3">
-                <p className="type-micro text-amber-accent uppercase mb-2">
-                  Missing {result.missing_fields.length} required{" "}
-                  {result.missing_fields.length === 1 ? "fact" : "facts"}
+              <div className="bg-white/50 rounded-sm p-3">
+                <p className="type-micro text-triage-blocked mb-2">
+                  MISSING {result.missing_fields.length} REQUIRED{" "}
+                  {result.missing_fields.length === 1 ? "FACT" : "FACTS"}
                 </p>
                 <ul className="space-y-1.5">
                   {result.missing_fields.map((mf, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-accent mt-1.5 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-triage-blocked mt-1.5 flex-shrink-0" />
                       <div>
-                        <span className="type-body font-medium text-amber-accent">
+                        <span className="type-body-sm font-medium text-triage-blocked">
                           {mf.field
                             .replace("danger_signs.", "")
                             .replace(/_/g, " ")}
                         </span>
-                        <span className="type-caption text-amber-accent/60 block">
+                        <span className="type-caption text-triage-blocked/60 block">
                           {mf.reason}
                         </span>
                       </div>
@@ -239,20 +239,20 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
             </div>
           )}
 
-          {/* Classified State — Result */}
+          {/* Classified State */}
           {!isBlocked && !isOoc && (
             <div className="space-y-3">
               {firedRule && (
-                <div className="bg-white/40 rounded-md p-3 border border-white/60">
-                  <p className="type-micro text-text-secondary uppercase mb-1">
-                    Fired Rule
+                <div className="bg-white/40 rounded-sm p-3 border border-white/60">
+                  <p className="type-micro text-ink-secondary mb-1">
+                    RULE FIRED
                   </p>
-                  <p className={`type-body font-medium ${cfg.text}`}>
+                  <p className={`type-body-sm font-medium ${cfg.text}`}>
                     {firedRule}
                   </p>
                 </div>
               )}
-              <p className={`type-body font-medium ${cfg.text}`}>
+              <p className={`type-body-sm font-medium ${cfg.text}`}>
                 {result.treatment_instruction}
               </p>
             </div>
@@ -260,21 +260,21 @@ export function ReferralCard({ result, assessment }: ReferralCardProps) {
 
           {/* Out of Cohort */}
           {isOoc && (
-            <p className="type-body text-text-secondary">
-              Patient is outside the 2–59 month age cohort for this IMNCI
+            <p className="type-body-sm text-ink-secondary">
+              Patient is outside the 2-59 month age cohort for this IMNCI
               module.
             </p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-3 border-t border-border-default flex items-center gap-4">
-          <div className="flex items-center gap-1.5 type-caption text-text-tertiary">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-accent" />
-            TypeScript deterministic logic
+        <div className="mt-4 pt-3 border-t border-rule flex items-center gap-4">
+          <div className="flex items-center gap-1.5 type-caption text-ink-muted">
+            <div className="w-1.5 h-1.5 rounded-full bg-triage-homecare" />
+            Deterministic TypeScript logic
           </div>
-          <div className="flex items-center gap-1.5 type-caption text-text-tertiary">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-accent" />
+          <div className="flex items-center gap-1.5 type-caption text-ink-muted">
+            <div className="w-1.5 h-1.5 rounded-full bg-triage-homecare" />
             Zero LLM in classification
           </div>
         </div>
