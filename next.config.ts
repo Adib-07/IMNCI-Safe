@@ -10,10 +10,6 @@ const securityHeaders = [
     value: "max-age=63072000; includeSubDomains; preload",
   },
   {
-    key: "X-Frame-Options",
-    value: "SAMEORIGIN",
-  },
-  {
     key: "X-Content-Type-Options",
     value: "nosniff",
   },
@@ -38,7 +34,6 @@ const securityHeaders = [
       "img-src 'self' data: blob:",
       "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self' https://generativelanguage.googleapis.com",
-      "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
     ].join("; "),
@@ -46,8 +41,19 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   reactStrictMode: true,
+  allowedDevOrigins: [
+    "*.run.app",
+    "ais-dev-eqjazximx3jllawurhkcaq-488329398250.asia-southeast1.run.app",
+    "ais-pre-eqjazximx3jllawurhkcaq-488329398250.asia-southeast1.run.app",
+    "localhost:3000",
+    "127.0.0.1:3000",
+  ],
   async headers() {
+    if (process.env.NODE_ENV !== "production") {
+      return [];
+    }
     return [
       {
         source: "/(.*)",

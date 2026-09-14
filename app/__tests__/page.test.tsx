@@ -27,7 +27,7 @@ vi.mock("@/components/Pipeline", () => ({
 }));
 
 vi.mock("@/components/InputPanel", () => ({
-  InputPanel: (props: Record<string, unknown>) => (
+  InputPanel: (_props: Record<string, unknown>) => (
     <section data-testid="input-panel">
       <textarea placeholder="clinical notes" />
       <button>Process Notes</button>
@@ -36,13 +36,13 @@ vi.mock("@/components/InputPanel", () => ({
 }));
 
 vi.mock("@/components/VerificationPanel", () => ({
-  VerificationPanel: (props: Record<string, unknown>) => (
+  VerificationPanel: (_props: Record<string, unknown>) => (
     <section data-testid="verification-panel">Verification Panel</section>
   ),
 }));
 
 vi.mock("@/components/ReferralCard", () => ({
-  ReferralCard: (props: Record<string, unknown>) => (
+  ReferralCard: (_props: Record<string, unknown>) => (
     <section data-testid="referral-card">Referral Card</section>
   ),
 }));

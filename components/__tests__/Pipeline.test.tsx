@@ -4,20 +4,24 @@ import React from "react";
 import { Pipeline } from "../Pipeline";
 
 describe("Pipeline Component", () => {
-  it("renders all four pipeline stages", () => {
+  it("renders all six pipeline stages", () => {
     render(<Pipeline currentStage="idle" />);
     expect(screen.getByText("Input")).toBeInTheDocument();
     expect(screen.getByText("Extract")).toBeInTheDocument();
-    expect(screen.getByText("Verify")).toBeInTheDocument();
+    expect(screen.getByText("Check missing facts")).toBeInTheDocument();
+    expect(screen.getByText("Verify protocol")).toBeInTheDocument();
     expect(screen.getByText("Confirm")).toBeInTheDocument();
+    expect(screen.getByText("Handoff")).toBeInTheDocument();
   });
 
   it("renders stage sublabels", () => {
     render(<Pipeline currentStage="idle" />);
     expect(screen.getByText("Paste notes")).toBeInTheDocument();
     expect(screen.getByText("AI reads")).toBeInTheDocument();
+    expect(screen.getByText("Gating safety")).toBeInTheDocument();
     expect(screen.getByText("Check rules")).toBeInTheDocument();
     expect(screen.getByText("Human decides")).toBeInTheDocument();
+    expect(screen.getByText("Referral card")).toBeInTheDocument();
   });
 
   it("highlights the active stage", () => {
@@ -49,5 +53,8 @@ describe("Pipeline Component", () => {
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("6")).toBeInTheDocument();
   });
 });
+

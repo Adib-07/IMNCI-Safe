@@ -1,49 +1,70 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* ── IMNCI Triage Colors (desaturated, institutional) ── */
-  --color-triage-urgent: #8B2332;
-  --color-triage-urgent-bg: #F5E0E3;
-  --color-triage-urgent-border: #D4A0A8;
+  /* ── Medical Dark Palette ── */
+  --color-med-bg: #0B1720;
+  --color-med-surface: #10232D;
+  --color-med-card: #15313A;
+  --color-med-elevated: #1B3B43;
+  --color-med-primary: #EAF7F5;
+  --color-med-secondary: #A8C3C5;
+  --color-med-muted: #78979B;
+  --color-med-teal: #2BB7A9;
+  --color-med-teal-light: #73DED0;
+  --color-med-amber: #F2B84B;
+  --color-med-red: #E75D5D;
+  --color-med-green: #49C589;
+  --color-med-border: rgba(160, 220, 216, 0.16);
 
-  --color-triage-treatment: #A17D1A;
-  --color-triage-treatment-bg: #F5EDD4;
-  --color-triage-treatment-border: #D4C88A;
+  /* ── IMNCI Triage Colors (Calm Medical Dark) ── */
+  --color-triage-urgent: #E75D5D;
+  --color-triage-urgent-bg: rgba(231, 93, 93, 0.12);
+  --color-triage-urgent-border: rgba(231, 93, 93, 0.4);
 
-  --color-triage-homecare: #2D7A4F;
-  --color-triage-homecare-bg: #DDE9E1;
-  --color-triage-homecare-border: #A0C4AC;
+  --color-triage-treatment: #F2B84B;
+  --color-triage-treatment-bg: rgba(242, 184, 75, 0.12);
+  --color-triage-treatment-border: rgba(242, 184, 75, 0.4);
 
-  --color-triage-blocked: #B45309;
-  --color-triage-blocked-bg: #F5E6D0;
-  --color-triage-blocked-border: #D4B88A;
+  --color-triage-homecare: #49C589;
+  --color-triage-homecare-bg: rgba(73, 197, 137, 0.12);
+  --color-triage-homecare-border: rgba(73, 197, 137, 0.4);
 
-  /* ── Surfaces ── */
-  --color-surface-page: #0B0F19;
-  --color-surface-card: #111827;
-  --color-surface-inset: #1F2937;
+  --color-triage-blocked: #F2B84B;
+  --color-triage-blocked-bg: rgba(242, 184, 75, 0.12);
+  --color-triage-blocked-border: rgba(242, 184, 75, 0.4);
+
+  /* ── Clinical Surfaces ── */
+  --color-surface-page: #0B1720;
+  --color-surface-card: #15313A;
+  --color-surface-inset: #10232D;
+  --color-surface-subtle: #1B3B43;
 
   /* ── Ink (text) ── */
-  --color-ink: #F9FAFB;
-  --color-ink-secondary: #9CA3AF;
-  --color-ink-muted: #6B7280;
-  --color-ink-inverse: #111827;
+  --color-ink: #EAF7F5;
+  --color-ink-secondary: #A8C3C5;
+  --color-ink-muted: #78979B;
+  --color-ink-inverse: #0B1720;
 
-  /* ── Structural ── */
-  --color-rule: #1F2937;
-  --color-rule-strong: #374151;
+  /* ── Structural Borders & Rules ── */
+  --color-rule: rgba(160, 220, 216, 0.16);
+  --color-rule-strong: rgba(160, 220, 216, 0.3);
+
+  /* ── Brand Primary (Medical Teal) ── */
+  --color-brand-primary: #2BB7A9;
+  --color-brand-primary-hover: #22998D;
+  --color-brand-light: #73DED0;
 
   /* ── Focus ── */
-  --color-focus-ring: rgba(99, 102, 241, 0.45);
+  --color-focus-ring: rgba(43, 183, 169, 0.4);
 
   /* ── Fonts ── */
-  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-source-sans), system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-heading), var(--font-fraunces), system-ui, sans-serif;
+  --font-sans: var(--font-source-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 :root {
-  --background: #0B0F19;
-  --foreground: #F9FAFB;
+  --background: #0B1720;
+  --foreground: #EAF7F5;
 }
 
 *,
@@ -58,7 +79,35 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Accessible focus styles */
+:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for dark medical panels */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #10232D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1B3B43;
+  border-radius: 9999px;
+  border: 1px solid rgba(160, 220, 216, 0.16);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2BB7A9;
 }
 
 /* ── Type Scale ── */

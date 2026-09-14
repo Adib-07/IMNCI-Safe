@@ -1,0 +1,7 @@
+{
+  "name": "IMNCI-Safe",
+  "description": "Protocol-grounded childhood illness classification against the Government of India IMNCI protocol.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

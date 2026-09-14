@@ -1,533 +1,498 @@
 "use client";
 
-import React, { useState, useCallback, useRef, useMemo } from "react";
-import { ImnciAssessment } from "@/lib/types";
-import { evaluateImnciProtocol } from "@/lib/imnci-rules";
+import React, { useState, useCallback } from "react";
 import { Header } from "@/components/Header";
+import { Pipeline, PipelineStageKey } from "@/components/Pipeline";
 import { InputPanel } from "@/components/InputPanel";
 import { VerificationPanel } from "@/components/VerificationPanel";
 import { ReferralCard } from "@/components/ReferralCard";
-import { Pipeline } from "@/components/Pipeline";
-import {
-  AlertCircle,
-  FileText,
-  Cpu,
-  ClipboardCheck,
-  UserCheck,
-  Shield,
-  BookOpen,
-  Lock,
+import { ReferralHandoffModal } from "@/components/ReferralHandoffModal";
+import { TechnicalDrawer } from "@/components/TechnicalDrawer";
+import { evaluateImnciRules } from "@/lib/imnci-rules";
+import { GUIDED_DEMO_CASES, DemoCaseMeta } from "@/lib/fixtures";
+import { 
+  ShieldCheck, 
+  Columns,
+  Maximize2
 } from "lucide-react";
-
-type PipelineStage = "idle" | "input" | "extract" | "verify" | "classify";
-
-interface MockEntity {
-  label: string;
-  value: string;
-  color: string;
-}
-
-const MOCK_CASCADE_ENTITIES: MockEntity[] = [
-  { label: "Age", value: "14 months", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
-  { label: "Symptom", value: "Cough", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-  { label: "RR", value: "48 bpm", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
-  { label: "Fast breathing", value: "Yes", color: "text-red-400 bg-red-500/10 border-red-500/20" },
-  { label: "Chest indrawing", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-  { label: "Stridor", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-  { label: "Unable to drink", value: "Yes", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
-  { label: "Convulsions", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-];
-
-const MOCK_CASCADE_HIGH_RISK: MockEntity[] = [
-  { label: "Age", value: "8 months", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
-  { label: "Symptom", value: "Cough", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-  { label: "RR", value: "55 bpm", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
-  { label: "Fast breathing", value: "Yes", color: "text-red-400 bg-red-500/10 border-red-500/20" },
-  { label: "Chest indrawing", value: "Yes", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
-  { label: "Stridor", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-  { label: "Unable to drink", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-  { label: "Convulsions", value: "No", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-];
+import type { 
+  ImnciAssessment, 
+  GeminiExtractionResponse, 
+  ProtocolResult 
+} from "@/lib/types";
 
 export default function ImnciDashboard() {
+  // Navigation & Step tracking: 1 = Assess, 2 = Review, 3 = Handoff
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+  const [viewMode, setViewMode] = useState<"step" | "all">("all");
+
+  // Core input & execution state
   const [inputText, setInputText] = useState("");
+  const [selectedDemoCaseId, setSelectedDemoCaseId] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [assessment, setAssessment] = useState<ImnciAssessment | null>(null);
-  const [isFallback, setIsFallback] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pipelineStage, setPipelineStage] = useState<PipelineStage>("idle");
   const [inputError, setInputError] = useState<string | null>(null);
-  const [cascadingEntities, setCascadingEntities] = useState<MockEntity[]>([]);
-  const [shakeInput, setShakeInput] = useState(false);
-  const cascadeTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [isFallback, setIsFallback] = useState<boolean | null>(null);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
-  const protocolResult = useMemo(
-    () => (assessment ? evaluateImnciProtocol(assessment) : null),
-    [assessment]
-  );
+  // Extracted clinical facts & deterministic rules result
+  const [extraction, setExtraction] = useState<GeminiExtractionResponse | null>(null);
+  const [assessment, setAssessment] = useState<ImnciAssessment | null>(null);
+  const [protocolResult, setProtocolResult] = useState<ProtocolResult | null>(null);
+  const [hasUserModified, setHasUserModified] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
-  const showVerification = useMemo(() => !!assessment, [assessment]);
-  const showCenterPanel = useMemo(
-    () => showVerification || pipelineStage === "extract" || pipelineStage === "verify",
-    [showVerification, pipelineStage]
-  );
+  // Pipeline stage tracking
+  const [pipelineStage, setPipelineStage] = useState<PipelineStageKey | "idle">("idle");
 
-  const clearError = useCallback(() => {
+  // Technical drawer & handoff modal visibility
+  const [isTechnicalViewOpen, setIsTechnicalViewOpen] = useState(false);
+  const [isHandoffModalOpen, setIsHandoffModalOpen] = useState(false);
+
+  // Check if user can navigate to given step
+  const canNavigateToStep = useCallback((step: 1 | 2 | 3) => {
+    if (step === 1) return true;
+    if (step === 2) return Boolean(assessment || extraction || isExtracting);
+    if (step === 3) return Boolean(protocolResult || assessment);
+    return false;
+  }, [assessment, extraction, isExtracting, protocolResult]);
+
+  // Handle guided demo selection
+  const handleSelectDemoCase = useCallback((demoCase: DemoCaseMeta) => {
+    setSelectedDemoCaseId(demoCase.id);
+    setInputText(demoCase.text || demoCase.sampleText || "");
     setInputError(null);
-    setError(null);
+    setIsConfirmed(false);
   }, []);
 
-  const clearCascadeTimers = useCallback(() => {
-    cascadeTimers.current.forEach(clearTimeout);
-    cascadeTimers.current = [];
-  }, []);
-
-  const handleProcessNotes = useCallback(() => {
-    const trimmed = inputText.trim();
-    if (!trimmed) {
-      setInputError("Please enter clinical notes before processing.");
-      setShakeInput(true);
-      setTimeout(() => setShakeInput(false), 400);
-      return;
-    }
-    setInputError(null);
-    setError(null);
-    setAssessment(null);
-    setIsFallback(false);
-    setCascadingEntities([]);
-
-    // Step 2: Extract (1.5s delay with cascading entities)
-    setPipelineStage("extract");
-    setIsExtracting(true);
-
-    // Cascade entity pills one by one
-    const entities = MOCK_CASCADE_ENTITIES;
-    entities.forEach((entity, i) => {
-      const timer = setTimeout(() => {
-        setCascadingEntities((prev) => [...prev, entity]);
-      }, i * 350);
-      cascadeTimers.current.push(timer);
-    });
-
-    setTimeout(() => {
-      // Step 3: Verify — skeleton loader
-      setPipelineStage("verify");
-
-      setTimeout(() => {
-        // Step 4: Confirm — show success with mock parsed data
-        setPipelineStage("classify");
-        setIsExtracting(false);
-        setIsFallback(true);
-        setCascadingEntities([]);
-        clearCascadeTimers();
-        setAssessment({
-          facts: {
-            patient_age_months: 14,
-            has_cough_or_difficult_breathing: true,
-            respiratory_rate: 48,
-            fast_breathing_reported: true,
-            chest_indrawing: false,
-            stridor_in_calm_child: false,
-            danger_signs: {
-              unable_to_drink_or_breastfeed: true,
-              vomits_everything: false,
-              has_convulsions: false,
-              lethargic_or_unconscious: false,
-            },
-          },
-        });
-      }, 1000);
-    }, 1500);
-  }, [inputText, clearCascadeTimers]);
-
+  // Handle Extraction request
   const handleExtract = useCallback(
-    async (overrideText?: string, useMockId?: string) => {
-      const textToAnalyze = overrideText !== undefined ? overrideText : inputText;
-      if (!textToAnalyze.trim()) return;
+    async (
+      overrideText?: string,
+      demoCaseIdOverride?: string,
+      imageBase64?: string | null,
+      modality: "voice" | "text" | "photo" = "text"
+    ) => {
+      const textToExtract = (overrideText ?? inputText).trim();
+      const activeDemoId = demoCaseIdOverride ?? selectedDemoCaseId;
+
+      if (!textToExtract && !imageBase64 && !activeDemoId) {
+        setInputError("Please enter clinical observations, record speech, or select a demo scenario.");
+        return;
+      }
 
       setInputError(null);
-      setError(null);
       setIsExtracting(true);
-      setAssessment(null);
-      setCascadingEntities([]);
-      clearCascadeTimers();
+      setIsConfirmed(false);
       setPipelineStage("extract");
 
-      // Determine which cascade entities to use based on mock ID
-      const isHighRisk = useMockId === "FIXTURE_HIGH_RISK";
-      const cascadeEntities = isHighRisk ? MOCK_CASCADE_HIGH_RISK : MOCK_CASCADE_ENTITIES;
-
-      // Cascade entity pills
-      cascadeEntities.forEach((entity, i) => {
-        const timer = setTimeout(() => {
-          setCascadingEntities((prev) => [...prev, entity]);
-        }, i * 350);
-        cascadeTimers.current.push(timer);
-      });
-
       try {
-        const res = await fetch("/api/extract", {
+        const startTime = Date.now();
+        const response = await fetch("/api/extract", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            text: useMockId ? useMockId : textToAnalyze,
-            useMock: !!useMockId,
+            text: textToExtract,
+            demoCaseId: activeDemoId,
+            imageBase64,
+            inputModality: modality,
           }),
         });
-        if (!res.ok) {
-          throw new Error(`Extraction failed (${res.status})`);
+
+        const data = await response.json();
+        const duration = Date.now() - startTime;
+        setLatencyMs(duration);
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || "Failed to extract clinical facts");
         }
-        const data = await res.json();
-        setAssessment(data.assessment);
-        setIsFallback(data.isFallback);
-        setPipelineStage("classify");
-        setCascadingEntities([]);
-        clearCascadeTimers();
-      } catch (err) {
-        console.error(err);
-        setError("Extraction failed. Using fallback fixture for demo.");
-        setIsFallback(true);
-        setAssessment({
-          facts: {
-            patient_age_months: "unknown",
-            has_cough_or_difficult_breathing: "unknown",
-            respiratory_rate: "unknown",
-            fast_breathing_reported: "unknown",
-            chest_indrawing: "unknown",
-            stridor_in_calm_child: "unknown",
-            danger_signs: {
-              unable_to_drink_or_breastfeed: "unknown",
-              vomits_everything: "unknown",
-              has_convulsions: "unknown",
-              lethargic_or_unconscious: "unknown",
-            },
-          },
-        });
-        setPipelineStage("classify");
-        setCascadingEntities([]);
-        clearCascadeTimers();
+
+        const ext: GeminiExtractionResponse = data.extraction || data.assessment?.structuredExtraction;
+        const baseAssessment: ImnciAssessment = data.assessment;
+
+        setExtraction(ext);
+        setAssessment(baseAssessment);
+        setIsFallback(data.isFallback || false);
+        setHasUserModified(false);
+
+        // Advance pipeline stage and active step
+        const missingCount = (ext?.missing_critical_fields && ext.missing_critical_fields.length) || 
+                             (ext?.missing_critical_information && ext.missing_critical_information.length) || 0;
+        setPipelineStage(missingCount > 0 ? "missing_check" : "structured");
+
+        // Evaluate deterministic rules immediately
+        const evaluatedResult = evaluateImnciRules(baseAssessment);
+        setProtocolResult(evaluatedResult);
+
+        // Automatically progress to Step 2 (Review) so the frontline health worker reviews the facts
+        setActiveStep(2);
+      } catch (err: unknown) {
+        console.error("Extraction failed:", err);
+        const errorMsg = err instanceof Error ? err.message : "Extraction service temporarily unavailable. Please try again or load a demo scenario.";
+        setInputError(errorMsg);
+        setPipelineStage("input");
       } finally {
         setIsExtracting(false);
       }
     },
-    [inputText, clearCascadeTimers]
+    [inputText, selectedDemoCaseId]
   );
 
-  const updateFact = useCallback(
-    (
-      key: string,
-      val: string | number | boolean,
-      isDangerSign: boolean = false
-    ) => {
+  // Handle manual field adjustments in Verification Panel
+  const handleUpdateField = useCallback(
+    (key: string, value: boolean | string | number | null, isDangerSign = false) => {
       if (!assessment) return;
-      setError(null);
-      const newAssessment = JSON.parse(
-        JSON.stringify(assessment)
-      ) as ImnciAssessment;
-      if (isDangerSign) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (newAssessment.facts.danger_signs as any)[key] = val;
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (newAssessment.facts as any)[key] = val;
-      }
-      setAssessment(newAssessment);
+
+      setIsConfirmed(false);
+      setAssessment((prev) => {
+        if (!prev) return prev;
+        const updated: ImnciAssessment = { 
+          ...prev,
+          facts: {
+            ...prev.facts,
+            danger_signs: { ...prev.facts.danger_signs }
+          }
+        };
+
+        if (isDangerSign) {
+          const booleanVal = value === "unknown" ? "unknown" : Boolean(value);
+          updated.danger_signs = {
+            ...updated.danger_signs,
+            [key]: booleanVal,
+          };
+          if (key === "convulsions" || key === "has_convulsions") {
+            updated.facts.danger_signs.has_convulsions = booleanVal;
+          } else if (key === "unable_to_drink" || key === "unable_to_drink_or_breastfeed") {
+            updated.facts.danger_signs.unable_to_drink_or_breastfeed = booleanVal;
+          } else if (key === "vomiting_everything" || key === "vomits_everything") {
+            updated.facts.danger_signs.vomits_everything = booleanVal;
+          } else if (key === "lethargic_or_unconscious") {
+            updated.facts.danger_signs.lethargic_or_unconscious = booleanVal;
+          }
+        } else if (key === "age_months" || key === "patient_age_months") {
+          const numVal = value === null || value === "" || value === "unknown" ? "unknown" : Number(value);
+          updated.age_months = numVal;
+          updated.facts.patient_age_months = numVal;
+        } else if (key === "respiratory_rate") {
+          const numVal = value === null || value === "" || value === "unknown" ? "unknown" : Number(value);
+          updated.respiratory_rate = numVal;
+          updated.facts.respiratory_rate = numVal;
+        } else if (key === "chest_indrawing") {
+          const boolVal = value === "unknown" ? "unknown" : Boolean(value);
+          updated.chest_indrawing = boolVal;
+          updated.facts.chest_indrawing = boolVal;
+        } else if (key === "stridor" || key === "stridor_in_calm_child") {
+          const boolVal = value === "unknown" ? "unknown" : Boolean(value);
+          updated.stridor = boolVal;
+          updated.facts.stridor_in_calm_child = boolVal;
+        } else if (key === "cough_duration_days") {
+          updated.cough_duration_days = value === null || value === "" ? null : Number(value);
+        }
+
+        // Re-evaluate deterministic rules immediately
+        const newResult = evaluateImnciRules(updated);
+        setProtocolResult(newResult);
+
+        return updated;
+      });
+
+      setHasUserModified(true);
+      setPipelineStage("rules_engine");
     },
     [assessment]
   );
 
-  const resetAll = useCallback(() => {
+  // Worker confirms facts explicitly
+  const handleConfirmAndEvaluate = useCallback(() => {
+    if (!assessment) return;
+    const finalResult = evaluateImnciRules(assessment);
+    setProtocolResult(finalResult);
+    setIsConfirmed(true);
+    setPipelineStage("confirmed");
+    setActiveStep(3); // Progress to Handoff step
+  }, [assessment]);
+
+  const handleConfirmDecision = useCallback(() => {
+    setIsConfirmed((prev) => !prev);
+  }, []);
+
+  // Reset entire assessment
+  const handleReset = useCallback(() => {
     setInputText("");
+    setSelectedDemoCaseId(null);
+    setExtraction(null);
     setAssessment(null);
-    setIsFallback(false);
-    setError(null);
+    setProtocolResult(null);
     setInputError(null);
+    setIsFallback(null);
+    setIsConfirmed(false);
     setPipelineStage("idle");
-    setIsExtracting(false);
-    setCascadingEntities([]);
-    clearCascadeTimers();
-  }, [clearCascadeTimers]);
+    setHasUserModified(false);
+    setActiveStep(1);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-[#0B0F19] to-[#0B0F19] flex flex-col">
-      <Header onReset={resetAll} showReset={!!assessment || isExtracting} isFallback={assessment ? isFallback : null} />
+    <div className="min-h-screen bg-[#0B1720] text-[#EAF7F5] flex flex-col font-sans selection:bg-[#2BB7A9] selection:text-[#0B1720]">
+      {/* Header */}
+      <Header
+        onReset={handleReset}
+        showReset={!!assessment || !!inputText}
+        isFallback={isFallback}
+        onToggleTechnicalView={() => setIsTechnicalViewOpen((prev) => !prev)}
+        showTechnicalView={isTechnicalViewOpen}
+        onOpenGuidedDemo={() => {
+          const firstDemo = GUIDED_DEMO_CASES[0];
+          handleSelectDemoCase(firstDemo);
+          setActiveStep(1);
+        }}
+        currentStep={activeStep}
+        onSelectStep={(s) => setActiveStep(s)}
+        canNavigateToStep={canNavigateToStep}
+      />
 
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0B0F19] to-[#0B0F19]" />
-        <div className="absolute inset-0 hero-grid opacity-30" />
-        <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-12 md:py-20">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              GOVERNMENT OF INDIA IMNCI PROTOCOL
+      {/* Main Clinical Workspace */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 flex flex-col gap-5">
+        {/* Workspace Top Banner / Purpose Statement */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[rgba(160,220,216,0.14)] pb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded bg-[#15313A] text-[#73DED0] border border-[rgba(160,220,216,0.2)] uppercase">
+                CLINICAL DECISION SUPPORT PROTOTYPE
+              </span>
+              <span className="text-[11px] text-[#A8C3C5] font-medium hidden sm:inline">
+                Integrated Management of Neonatal and Childhood Illness
+              </span>
             </div>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-tight tracking-tight mb-5">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-                Every child assessed against the protocol.
-              </span>
-              <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-emerald-400 to-teal-300">
-                Every result cited. Every decision confirmed.
-              </span>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#EAF7F5] tracking-tight">
+              Frontline Protocol Decision Support
             </h1>
-            <p className="text-base md:text-lg text-slate-400 leading-relaxed max-w-2xl mb-4">
-              IMNCI-Safe takes messy field notes from community health workers and runs a deterministic classification against the official Integrated Management of Neonatal and Childhood Illness danger-sign protocol.
-            </p>
-            <p className="text-sm text-slate-500 max-w-2xl">
-              AI reads the notes. The rules engine decides the classification. A health worker confirms the result. No autonomous decisions. No AI opinions.
+            <p className="text-xs text-[#A8C3C5] mt-1 max-w-2xl leading-relaxed">
+              Turns messy field observations into a structured IMNCI assessment. Gemini extracts clinical facts; a transparent protocol-checking layer verifies missing information and evaluates a limited rule subset. Frontline workers confirm facts before referral handoff.
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* ── Tool Section ── */}
-      <section className="flex-1 max-w-[1400px] w-full mx-auto px-4 md:px-6 py-6 relative z-10">
-        {/* Pipeline */}
-        <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl px-4 py-3">
-          <Pipeline currentStage={pipelineStage} />
-        </div>
-
-        {/* Error Banner */}
-        {error && (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 backdrop-blur-xl px-4 py-3 flex items-start gap-3 mb-4 animate-fade-in">
-            <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-amber-300">{error}</p>
-              <p className="text-xs text-amber-400/60 mt-0.5">
-                The system fell back to a demo fixture. Reset and try again with a valid API key.
-              </p>
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            {/* View Mode Switcher: 3-Area Overview vs Focused Step */}
+            <div className="hidden lg:flex items-center bg-[#10232D] border border-[rgba(160,220,216,0.16)] rounded-lg p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setViewMode("all")}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded font-medium transition-colors ${
+                  viewMode === "all"
+                    ? "bg-[#2BB7A9] text-[#0B1720]"
+                    : "text-[#A8C3C5] hover:text-[#EAF7F5]"
+                }`}
+                title="View all 3 areas simultaneously"
+              >
+                <Columns className="w-3.5 h-3.5" />
+                <span>3-Area Layout</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("step")}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded font-medium transition-colors ${
+                  viewMode === "step"
+                    ? "bg-[#2BB7A9] text-[#0B1720]"
+                    : "text-[#A8C3C5] hover:text-[#EAF7F5]"
+                }`}
+                title="Focus on current active step"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Focused Step</span>
+              </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setIsTechnicalViewOpen(true)}
+              className="text-xs font-semibold text-[#A8C3C5] hover:text-[#EAF7F5] bg-[#10232D] hover:bg-[#15313A] border border-[rgba(160,220,216,0.2)] px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+            >
+              Inspection & Trace
+            </button>
+          </div>
+        </div>
+
+        {/* Safety Pipeline Stepper */}
+        <div>
+          <Pipeline 
+            currentStage={pipelineStage} 
+            activeStep={activeStep}
+            onSelectStep={(s) => setActiveStep(s)}
+            canNavigateToStep={canNavigateToStep}
+          />
+        </div>
+
+        {/* Clinical Workspace Areas (Responsive Layout) */}
+        {viewMode === "all" ? (
+          /* 3-Column / 3-Area Layout */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            {/* Area 1: Assess (Messy Observations) */}
+            <div className={`lg:col-span-4 flex flex-col gap-4 ${activeStep === 1 ? "ring-1 ring-[#2BB7A9]/40 rounded-xl" : ""}`}>
+              <InputPanel
+                inputText={inputText}
+                onInputChange={(text) => {
+                  setInputText(text);
+                  if (selectedDemoCaseId) setSelectedDemoCaseId(null);
+                }}
+                onExtract={handleExtract}
+                onProcessNotes={() => handleExtract()}
+                inputError={inputError}
+                isExtracting={isExtracting}
+                selectedDemoCaseId={selectedDemoCaseId}
+                onSelectDemoCase={handleSelectDemoCase}
+              />
+            </div>
+
+            {/* Area 2: Review (Structured Clinical Findings) */}
+            <div className={`lg:col-span-4 flex flex-col gap-4 ${activeStep === 2 ? "ring-1 ring-[#2BB7A9]/40 rounded-xl" : ""}`}>
+              <VerificationPanel
+                extraction={extraction}
+                assessment={assessment}
+                protocolResult={protocolResult}
+                isExtracting={isExtracting}
+                onUpdateField={handleUpdateField}
+                onConfirmAndEvaluate={handleConfirmAndEvaluate}
+                hasUserModified={hasUserModified}
+              />
+            </div>
+
+            {/* Area 3: Handoff (Deterministic Triage & Handoff Card) */}
+            <div className={`lg:col-span-4 flex flex-col gap-4 ${activeStep === 3 ? "ring-1 ring-[#2BB7A9]/40 rounded-xl" : ""}`}>
+              <ReferralCard
+                result={protocolResult}
+                assessment={assessment}
+                isConfirmed={isConfirmed}
+                onConfirmDecision={handleConfirmDecision}
+                onOpenHandoffModal={() => setIsHandoffModalOpen(true)}
+                onReset={handleReset}
+                isExtracting={isExtracting}
+              />
+            </div>
+          </div>
+        ) : (
+          /* Focused Step View (Single area with clean navigation) */
+          <div className="max-w-3xl mx-auto w-full flex flex-col gap-4">
+            {activeStep === 1 && (
+              <InputPanel
+                inputText={inputText}
+                onInputChange={(text) => {
+                  setInputText(text);
+                  if (selectedDemoCaseId) setSelectedDemoCaseId(null);
+                }}
+                onExtract={handleExtract}
+                onProcessNotes={() => handleExtract()}
+                inputError={inputError}
+                isExtracting={isExtracting}
+                selectedDemoCaseId={selectedDemoCaseId}
+                onSelectDemoCase={handleSelectDemoCase}
+              />
+            )}
+
+            {activeStep === 2 && (
+              <div className="flex flex-col gap-4">
+                <VerificationPanel
+                  extraction={extraction}
+                  assessment={assessment}
+                  protocolResult={protocolResult}
+                  isExtracting={isExtracting}
+                  onUpdateField={handleUpdateField}
+                  onConfirmAndEvaluate={handleConfirmAndEvaluate}
+                  hasUserModified={hasUserModified}
+                />
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(1)}
+                    className="text-xs text-[#A8C3C5] hover:text-[#EAF7F5] bg-[#10232D] border border-[rgba(160,220,216,0.16)] px-3 py-1.5 rounded-lg"
+                  >
+                    &larr; Back to Step 1 (Assess)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(3)}
+                    disabled={!protocolResult}
+                    className="text-xs text-[#0B1720] font-bold bg-[#2BB7A9] hover:bg-[#73DED0] px-4 py-1.5 rounded-lg disabled:opacity-50"
+                  >
+                    Proceed to Step 3 (Handoff) &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeStep === 3 && (
+              <div className="flex flex-col gap-4">
+                <ReferralCard
+                  result={protocolResult}
+                  assessment={assessment}
+                  isConfirmed={isConfirmed}
+                  onConfirmDecision={handleConfirmDecision}
+                  onOpenHandoffModal={() => setIsHandoffModalOpen(true)}
+                  onReset={handleReset}
+                  isExtracting={isExtracting}
+                />
+                <div className="flex items-center justify-start pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(2)}
+                    className="text-xs text-[#A8C3C5] hover:text-[#EAF7F5] bg-[#10232D] border border-[rgba(160,220,216,0.16)] px-3 py-1.5 rounded-lg"
+                  >
+                    &larr; Back to Step 2 (Review)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Three-column grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_2fr_1.5fr] gap-4 md:gap-5 items-start">
-          {/* Panel 1: Input */}
-          <InputPanel
-            inputText={inputText}
-            onInputChange={(text) => {
-              setInputText(text);
-              if (inputError) setInputError(null);
-            }}
-            onExtract={handleExtract}
-            onProcessNotes={handleProcessNotes}
-            inputError={inputError}
-            isExtracting={isExtracting}
-            isProcessing={isExtracting}
-            isDisabled={false}
-            shakeInput={shakeInput}
-          />
-
-          {/* Panel 2: Verification / Extraction */}
-          {showCenterPanel && (
-            <VerificationPanel
-              assessment={assessment}
-              isExtracting={isExtracting}
-              isFallback={isFallback}
-              onUpdateFact={updateFact}
-              pipelineStage={pipelineStage}
-              cascadingEntities={cascadingEntities}
-            />
-          )}
-
-          {!showCenterPanel && (
-            <div className="hidden lg:flex rounded-2xl border border-slate-800 bg-slate-900/30 backdrop-blur-xl items-center justify-center py-12">
-              <div className="text-center px-6">
-                <div className="w-14 h-14 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mx-auto mb-4 relative">
-                  <ClipboardCheck className="w-6 h-6 text-slate-500" />
-                  <div className="absolute inset-0 rounded-full border border-emerald-500/20 animate-pulse" />
-                </div>
-                <p className="text-sm text-slate-400 mb-1 font-medium">
-                  Paste clinical notes and extract
-                </p>
-                <p className="text-xs text-slate-600">
-                  Or select a demo case to begin
-                </p>
-              </div>
+        {/* Medical Protocol Scope & Safeguards Reference Bar */}
+        <div className="mt-4 bg-[#10232D] border border-[rgba(160,220,216,0.14)] rounded-xl p-4 sm:p-5 text-xs text-[#A8C3C5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#2BB7A9]" />
+              <strong className="text-[#EAF7F5] font-semibold">
+                WHO / Ministry of Health and Family Welfare (India) IMNCI Protocol Scope
+              </strong>
             </div>
-          )}
-
-          {!showCenterPanel && (
-            <div className="lg:hidden" />
-          )}
-
-          {/* Panel 3: Classification */}
-          <ReferralCard
-            result={protocolResult}
-            assessment={assessment}
-            isExtracting={isExtracting}
-            pipelineStage={pipelineStage}
-            onReset={resetAll}
-          />
-        </div>
-      </section>
-
-      {/* ── How It Works ── */}
-      <section className="relative border-t border-slate-800/60">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-12 md:py-16">
-          <h2 className="font-serif text-2xl md:text-3xl font-bold text-white mb-3">
-            How IMNCI-Safe classifies a sick child
-          </h2>
-          <p className="text-sm text-slate-500 mb-10 max-w-xl">
-            Four-step deterministic pipeline. Zero autonomous decisions.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                step: "01",
-                title: "Paste clinical notes",
-                body: "A community health worker pastes their field notes or a voice transcript. The notes can be messy, in mixed languages, or abbreviated.",
-                icon: FileText,
-                color: "from-blue-500 to-cyan-500",
-                glow: "bg-blue-500/10 border-blue-500/20",
-              },
-              {
-                step: "02",
-                title: "AI extracts structured facts",
-                body: "A language model reads the free-text notes and pulls out specific clinical values: age, respiratory rate, danger signs, and chest indrawing.",
-                icon: Cpu,
-                color: "from-violet-500 to-purple-500",
-                glow: "bg-violet-500/10 border-violet-500/20",
-              },
-              {
-                step: "03",
-                title: "Rules engine checks protocol",
-                body: "A deterministic TypeScript engine evaluates every extracted fact against the official IMNCI danger-sign algorithm. No LLM involved.",
-                icon: ClipboardCheck,
-                color: "from-emerald-500 to-teal-500",
-                glow: "bg-emerald-500/10 border-emerald-500/20",
-              },
-              {
-                step: "04",
-                title: "Human confirms classification",
-                body: "A health worker reviews every extracted fact, corrects any errors, and confirms the classification. The system never acts autonomously.",
-                icon: UserCheck,
-                color: "from-amber-500 to-orange-500",
-                glow: "bg-amber-500/10 border-amber-500/20",
-              },
-            ].map((s) => {
-              const Icon = s.icon;
-              return (
-                <div
-                  key={s.step}
-                  className={`group relative rounded-2xl border border-slate-800 bg-slate-900/30 backdrop-blur-xl p-5 hover:-translate-y-1 transition-all duration-300 hover:border-slate-700`}
-                >
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-4 shadow-lg`}>
-                    <Icon className="w-5 h-5 text-white" strokeWidth={2} />
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[0.625rem] font-bold text-slate-600 tracking-widest">STEP {s.step}</span>
-                  </div>
-                  <h3 className="text-sm font-semibold text-white mb-2">
-                    {s.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    {s.body}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Why It's Trustworthy ── */}
-      <section className="relative border-t border-slate-800/60">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-12 md:py-16">
-          <h2 className="font-serif text-2xl md:text-3xl font-bold text-white mb-3">
-            Why health programs trust IMNCI-Safe
-          </h2>
-          <p className="text-sm text-slate-500 max-w-2xl mb-10">
-            The system is designed around one principle: no child&apos;s classification should depend on an AI&apos;s judgment. Every design decision flows from that.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              {
-                icon: BookOpen,
-                title: "Grounded in the official protocol",
-                body: "Every classification result is produced by a deterministic rules engine that implements the Government of India\u2019s published IMNCI algorithm. Each result cites the specific rule that fired.",
-                color: "from-blue-500 to-cyan-500",
-              },
-              {
-                icon: Lock,
-                title: "Missing data blocks classification",
-                body: "When a field cannot be extracted with confidence, the system marks it as unknown and blocks the classification entirely. It does not guess, default, or skip.",
-                color: "from-amber-500 to-orange-500",
-              },
-              {
-                icon: Shield,
-                title: "A human confirms every result",
-                body: "IMNCI-Safe never acts autonomously. Every extracted fact is shown to a health worker for review. The tool supports clinical judgment; it does not replace it.",
-                color: "from-emerald-500 to-teal-500",
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.title} className="group rounded-2xl border border-slate-800 bg-slate-900/30 backdrop-blur-xl p-5 hover:-translate-y-1 transition-all duration-300 hover:border-slate-700">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 shadow-lg`}>
-                    <Icon className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-white mb-2">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    {item.body}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Triage color legend */}
-          <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900/30 backdrop-blur-xl p-5">
-            <h3 className="text-[0.6875rem] font-semibold tracking-widest text-slate-500 mb-4">
-              IMNCI TRIAGE COLOUR CODING
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="flex items-start gap-3">
-                <div className="w-4 h-4 rounded-full bg-pink-500 flex-shrink-0 mt-0.5 shadow-lg shadow-pink-500/30" />
-                <div>
-                  <p className="text-sm font-semibold text-pink-400">PINK</p>
-                  <p className="text-xs text-slate-500">Severe pneumonia or very severe disease. Urgent referral to hospital.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-4 h-4 rounded-full bg-amber-400 flex-shrink-0 mt-0.5 shadow-lg shadow-amber-400/30" />
-                <div>
-                  <p className="text-sm font-semibold text-amber-400">YELLOW</p>
-                  <p className="text-xs text-slate-500">Pneumonia. Outpatient medical treatment and advice.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-4 h-4 rounded-full bg-emerald-500 flex-shrink-0 mt-0.5 shadow-lg shadow-emerald-500/30" />
-                <div>
-                  <p className="text-sm font-semibold text-emerald-400">GREEN</p>
-                  <p className="text-xs text-slate-500">No pneumonia: cough or cold. Home care advice.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Footer ── */}
-      <footer className="border-t border-slate-800/60 bg-[#0B0F19]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Shield className="w-4 h-4 text-emerald-400" />
-                <span className="text-sm font-semibold text-white">IMNCI-Safe</span>
-              </div>
-              <p className="text-xs text-slate-600">
-                Clinical decision support for community health workers. Classifications grounded in the Government of India IMNCI protocol.
-              </p>
-            </div>
-            <p className="text-xs text-slate-600">
-              Not a replacement for clinical judgment.
+            <p className="text-[11px] text-[#78979B] leading-relaxed">
+              Limited prototype subset: <em>Acute Respiratory Infection & General Danger Signs for Children 2–59 Months</em>. Evaluates chest indrawing, stridor, and respiratory rate against age-specific thresholds (&ge;50 bpm for 2–11 mo; &ge;40 bpm for 12–59 mo).
             </p>
+          </div>
+
+          <div className="shrink-0 flex items-center gap-2 text-[11px] text-[#73DED0] bg-[#15313A] px-3 py-1.5 rounded-lg border border-[rgba(160,220,216,0.2)]">
+            <ShieldCheck className="w-4 h-4 text-[#2BB7A9]" />
+            <span>Not an AI Doctor &bull; Human Confirmation Mandatory</span>
+          </div>
+        </div>
+      </main>
+
+      {/* Modals & Technical Drawers */}
+      <ReferralHandoffModal
+        isOpen={isHandoffModalOpen}
+        onClose={() => setIsHandoffModalOpen(false)}
+        result={protocolResult}
+        assessment={assessment}
+        isConfirmed={isConfirmed}
+        onConfirm={handleConfirmDecision}
+      />
+
+      <TechnicalDrawer
+        isOpen={isTechnicalViewOpen}
+        onClose={() => setIsTechnicalViewOpen(false)}
+        extraction={extraction}
+        assessment={assessment}
+        result={protocolResult}
+        latencyMs={latencyMs}
+      />
+
+      {/* Footer */}
+      <footer className="border-t border-[rgba(160,220,216,0.12)] bg-[#0B1720] py-3.5 px-4 sm:px-6 mt-auto">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#78979B]">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-[#A8C3C5]">IMNCI-Safe</span>
+            <span>&bull;</span>
+            <span>Frontline Child-Health Decision Support Prototype</span>
+          </div>
+          <div className="text-[11px] text-[#78979B]">
+            Clinical decision support only. Never replaces qualified clinical judgment.
           </div>
         </div>
       </footer>
