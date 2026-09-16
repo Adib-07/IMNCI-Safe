@@ -6,42 +6,37 @@ import { Pipeline } from "../Pipeline";
 describe("Pipeline Component", () => {
   it("renders all three workflow steps", () => {
     render(<Pipeline currentStage="idle" />);
-    expect(screen.getByText("1. Assess")).toBeInTheDocument();
-    expect(screen.getByText("2. Review")).toBeInTheDocument();
-    expect(screen.getByText("3. Handoff")).toBeInTheDocument();
+    expect(screen.getByText("Input")).toBeInTheDocument();
+    expect(screen.getByText("Verify")).toBeInTheDocument();
+    expect(screen.getByText("Result")).toBeInTheDocument();
   });
 
   it("renders step sublabels", () => {
     render(<Pipeline currentStage="idle" />);
-    expect(screen.getByText(/Messy field input/)).toBeInTheDocument();
-    expect(screen.getByText(/Structured findings/)).toBeInTheDocument();
-    expect(screen.getByText(/Deterministic triage/)).toBeInTheDocument();
+    expect(screen.getByText(/Clinical observations/)).toBeInTheDocument();
+    expect(screen.getByText(/Review extracted facts/)).toBeInTheDocument();
+    expect(screen.getByText(/Protocol classification/)).toBeInTheDocument();
   });
 
   it("highlights the active step", () => {
     render(<Pipeline activeStep={2} />);
-    const reviewButton = screen.getByText("2. Review").closest("button");
+    const reviewButton = screen.getByText("Verify").closest("button");
     expect(reviewButton).toHaveAttribute("aria-current", "step");
   });
 
   it("has proper accessibility label", () => {
     render(<Pipeline currentStage="idle" />);
-    expect(screen.getByLabelText("Clinical workflow steps")).toBeInTheDocument();
-  });
-
-  it("renders deterministic gating badge", () => {
-    render(<Pipeline currentStage="idle" />);
-    expect(screen.getByText("Deterministic Gating Active")).toBeInTheDocument();
+    expect(screen.getByLabelText("Clinical workflow progress")).toBeInTheDocument();
   });
 
   it("disables steps that cannot be navigated to", () => {
     render(
-      <Pipeline 
-        activeStep={1} 
+      <Pipeline
+        activeStep={1}
         canNavigateToStep={(step) => step <= 1}
       />
     );
-    const reviewButton = screen.getByText("2. Review").closest("button");
-    expect(reviewButton).toBeDisabled();
+    const verifyButton = screen.getByText("Verify").closest("button");
+    expect(verifyButton).toBeDisabled();
   });
 });

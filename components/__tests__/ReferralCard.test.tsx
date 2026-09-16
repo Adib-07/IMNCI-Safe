@@ -31,23 +31,23 @@ const blockedResult: ProtocolResult = {
 describe("ReferralCard Component", () => {
   it("renders empty state when no result", () => {
     render(<ReferralCard result={null} assessment={null} />);
-    expect(screen.getByText("Waiting for Clinical Facts")).toBeInTheDocument();
+    expect(screen.getByText("Awaiting Classification")).toBeInTheDocument();
   });
 
   it("renders loading state when extracting", () => {
     render(<ReferralCard result={null} assessment={null} isExtracting={true} />);
-    expect(screen.getByText("Evaluating IMNCI protocol rules...")).toBeInTheDocument();
+    expect(screen.getByText(/Evaluating Protocol Rules/)).toBeInTheDocument();
   });
 
   it("renders classified result with triage color", () => {
     render(<ReferralCard result={classifiedResult} assessment={null} />);
     expect(screen.getByText("SEVERE PNEUMONIA OR VERY SEVERE DISEASE")).toBeInTheDocument();
-    expect(screen.getByText(/URGENT REFERRAL \(PINK\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Urgent Referral — Pink/)).toBeInTheDocument();
   });
 
-  it("renders deterministic rule fired text for classified result", () => {
+  it("renders deterministic badge", () => {
     render(<ReferralCard result={classifiedResult} assessment={null} />);
-    expect(screen.getByText("DETERMINISTIC RULE FIRED")).toBeInTheDocument();
+    expect(screen.getByText(/Deterministic rules engine/)).toBeInTheDocument();
   });
 
   it("renders treatment instruction", () => {
@@ -55,31 +55,25 @@ describe("ReferralCard Component", () => {
     expect(screen.getByText("Urgent referral to hospital.")).toBeInTheDocument();
   });
 
-  it("renders confirm decision checkbox", () => {
+  it("renders confirm checkbox", () => {
     render(<ReferralCard result={classifiedResult} assessment={null} />);
-    expect(screen.getByText("Confirm Decision")).toBeInTheDocument();
+    expect(screen.getByText("Confirm")).toBeInTheDocument();
   });
 
   it("renders blocked state with missing fields", () => {
     render(<ReferralCard result={blockedResult} assessment={null} />);
-    expect(screen.getByText("CANNOT CLASSIFY SAFELY YET (AMBER)")).toBeInTheDocument();
-    expect(screen.getByText(/MISSING 1 REQUIRED FACT/)).toBeInTheDocument();
+    expect(screen.getByText("CANNOT CLASSIFY SAFELY YET")).toBeInTheDocument();
+    expect(screen.getByText(/Missing 1 Required Fact/)).toBeInTheDocument();
   });
 
-  it("renders deterministic logic badge", () => {
-    render(<ReferralCard result={classifiedResult} assessment={null} />);
-    expect(screen.getByText("Deterministic TypeScript Logic Engine")).toBeInTheDocument();
-    expect(screen.getByText("Zero LLM in Triage Classification")).toBeInTheDocument();
-  });
-
-  it("renders start over button when onReset provided", () => {
+  it("renders reset button when onReset provided", () => {
     const onReset = vi.fn();
     render(<ReferralCard result={classifiedResult} assessment={null} onReset={onReset} />);
-    expect(screen.getByText("Start Over")).toBeInTheDocument();
+    expect(screen.getByText("Reset")).toBeInTheDocument();
   });
 
-  it("does not render start over button when onReset not provided", () => {
+  it("does not render reset button when onReset not provided", () => {
     render(<ReferralCard result={classifiedResult} assessment={null} />);
-    expect(screen.queryByText("Start Over")).not.toBeInTheDocument();
+    expect(screen.queryByText("Reset")).not.toBeInTheDocument();
   });
 });

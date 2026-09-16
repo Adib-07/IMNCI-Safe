@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("IMNCI-Safe ErrorBoundary caught:", error, errorInfo);
+    console.error("IMNCI-Safe ErrorBoundary:", error, errorInfo);
   }
 
   handleReset = () => {
@@ -34,34 +34,29 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       return (
-        <div
-          role="alert"
-          className="min-h-[60vh] flex items-center justify-center p-6"
-        >
-          <div className="max-w-md w-full bg-[#15313A] border border-[rgba(231,93,93,0.3)] rounded-xl p-6 text-center shadow-lg">
-            <div className="w-12 h-12 rounded-full bg-[rgba(231,93,93,0.15)] border border-[rgba(231,93,93,0.3)] flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-6 h-6 text-[#E75D5D]" />
+        <div role="alert" className="min-h-[60vh] flex items-center justify-center p-6">
+          <div className="max-w-sm w-full bg-[var(--color-card)] border border-[var(--color-pink-border)] rounded-xl p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-pink-bg)] flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-6 h-6 text-[var(--color-pink)]" />
             </div>
-            <h2 className="text-sm font-bold text-[#EAF7F5] mb-1">
+            <h2 className="type-h3 text-[var(--color-text)] mb-1">
               {this.props.fallbackLabel || "Something went wrong"}
             </h2>
-            <p className="text-xs text-[#A8C3C5] mb-4 leading-relaxed">
-              The application encountered an unexpected error. Your clinical data
-              has not been lost. Please try resetting the session.
+            <p className="type-small text-[var(--color-text-secondary)] mb-4">
+              Clinical data has not been lost. Try resetting the session.
             </p>
             <button
               type="button"
               onClick={this.handleReset}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-[#0B1720] bg-[#2BB7A9] hover:bg-[#73DED0] transition-colors shadow-md"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] transition-colors"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset Session
+              <RotateCcw className="w-4 h-4" />
+              Reset
             </button>
           </div>
         </div>
       );
     }
-
     return this.props.children;
   }
 }

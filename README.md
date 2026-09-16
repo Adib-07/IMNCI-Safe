@@ -1,93 +1,51 @@
 # IMNCI-Safe
 
-An AI-assisted IMNCI clinical assessment prototype that converts unstructured child-health notes into structured facts, supports human verification, and applies deterministic protocol rules for transparent classification.
-
-## Overview
-
-Frontline health workers screening sick children rely on the IMNCI (Integrated Management of Neonatal and Childhood Illness) chart booklet from India's National Health Mission. The protocol requires evaluating 4 general danger signs, measuring respiratory rate against age-specific thresholds, and checking for chest indrawing and stridor — all under time pressure with paper-based workflows.
-
-Current AI chatbot approaches attempt to both extract and classify clinical data in a single step. This creates a safety risk: the LLM may hallucinate classifications, silently convert missing information into negative findings, or apply incorrect age-specific thresholds.
-
-IMNCI-Safe addresses this by separating extraction from classification into a strict three-layer architecture.
-
-## Core Principle
+AI-assisted IMNCI assessment prototype for frontline child-health workers.
 
 **AI extracts. Human verifies. Rules decide.**
 
+## Why IMNCI-Safe?
+
+Frontline health workers screening sick children rely on the IMNCI chart booklet from India's National Health Mission. The protocol requires evaluating 4 general danger signs, measuring respiratory rate against age-specific thresholds, and checking for chest indrawing and stridor — all under time pressure with paper-based workflows.
+
+Most AI chatbot approaches attempt to both extract and classify clinical data in a single step. This creates a safety risk: the LLM may hallucinate classifications, silently convert missing information into negative findings, or apply incorrect age-specific thresholds.
+
+IMNCI-Safe separates extraction from classification into a strict three-layer architecture.
+
+## Safety-First Architecture
+
 | Layer | Role | Never does |
 |-------|------|------------|
-| **LLM (Gemini)** | Parses multilingual notes, extracts clinical observations into structured JSON with verbatim evidence | Classify, diagnose, or determine triage color |
-| **Human** | Reviews extracted facts, confirms or corrects observations, provides missing measurements | — |
-| **Deterministic rules engine** | Evaluates verified facts against official IMNCI protocol rules in pure TypeScript | Call external services, use randomness, or infer from incomplete data |
+| **LLM (Gemini)** | Parses multilingual notes, extracts clinical observations into structured JSON | Classify, diagnose, or determine triage color |
+| **Human** | Reviews extracted facts, confirms or corrects observations | — |
+| **Deterministic rules** | Evaluates verified facts against IMNCI protocol rules in pure TypeScript | Call external services, use randomness, or infer from incomplete data |
 
 The rules engine is the only component that produces a triage classification. It is a pure function: same input always yields same output.
 
-```
-Unstructured note → AI extraction → Structured facts → Human verification → Deterministic IMNCI rules → Classification or AMBER refusal
-```
+**Core invariant: `UNKNOWN` is never converted to `false`.** Missing critical information triggers an AMBER refusal. The system blocks classification rather than producing a result from incomplete data.
 
-## Safety Model
-
-The system enforces a strict safety invariant:
-
-**`UNKNOWN` is never converted to `false`.**
-
-If a symptom is not mentioned in the input, it is recorded as `"unknown"` — not assumed absent. When any critical field remains unknown, the system refuses to classify and returns an AMBER status with a structured explanation of what is missing and what question to ask next.
+## Product Workflow
 
 ```
-UNKNOWN ≠ FALSE
-Missing critical information → Protocol-safe refusal (AMBER)
+Clinical Note Input → AI Extraction → Human Verification → Deterministic Rules → Classification
 ```
 
-This is the core invariant. The system will actively block referral card generation rather than produce a classification from incomplete data.
-
-**Key safety properties:**
-
-- AI is not the final decision maker
-- Missing critical information blocks classification
-- Deterministic rules are authoritative
-- Outputs are auditable with evidence trails
-- Human verification is part of the workflow
-
-**Limitations:**
-
-- This is a software prototype, not a medical device
-- It implements a subset of the full IMNCI protocol (sick child 2–59 months: general danger signs + cough/breathing module only)
-- It does not cover fever, diarrhea, or ear/throat assessments
-- A qualified health worker must always review and confirm
-
-## How It Works
-
-```
-Health Worker Note (code-mixed Hindi/English text)
-  ↓
-POST /api/extract
-  ↓
-Gemini Structured Extraction (JSON schema, temperature 0.0)
-  ↓
-Validated Findings + Evidence Quotes + Missing Fields
-  ↓
-Human Verification (review, confirm, correct)
-  ↓
-Deterministic IMNCI Rules Engine (lib/imnci-rules.ts)
-  ├─ PINK:  Urgent referral (any danger sign or severe physical sign)
-  ├─ YELLOW: Pneumonia — outpatient antibiotic pathway
-  ├─ GREEN:  No urgent trigger — home care counseling
-  └─ AMBER:  Refusal — missing data, classification blocked
-  ↓
-Referral Card with auditable evidence trail
-```
+1. **Input** — Health worker enters observations in Hindi, English, or mixed language
+2. **AI Extraction** — Gemini parses the note into structured clinical facts with verbatim evidence
+3. **Human Verification** — Worker reviews, corrects, and confirms extracted findings
+4. **Protocol Evaluation** — Pure TypeScript rules engine classifies against IMNCI protocol
+5. **Result** — PINK (urgent referral), YELLOW (pneumonia), GREEN (home care), or AMBER (blocked — incomplete data)
 
 ## Features
 
 - **Structured extraction** — Gemini parses multilingual clinical notes into typed JSON with verbatim evidence quotes
-- **Deterministic classification** — Pure TypeScript rules engine, no AI calls in the classification path
-- **Protocol-safe refusal** — Blocks classification when critical fields are unknown; never silently assumes negative findings
-- **Age-specific thresholds** — Fast breathing evaluated at ≥50 bpm (2–11 months) and ≥40 bpm (12–59 months) per NHM IMNCI guidelines
+- **Deterministic classification** — Pure TypeScript rules engine, zero LLM calls in the classification path
+- **Protocol-safe refusal** — Blocks classification when critical fields are unknown
+- **Age-specific thresholds** — Fast breathing evaluated at ≥50 bpm (2–11 months) and ≥40 bpm (12–59 months)
 - **4 general danger signs** — Convulsions, inability to drink/breastfeed, vomiting everything, lethargic/unconscious
 - **3 demo fixtures** — Pre-built test cases for urgent referral, incomplete data, and normal findings
 - **Deterministic fallback** — When Gemini API is unavailable, regex-based extraction provides safe offline operation
-- **250 tests** — Rules engine boundaries, API validation, error handling, unknown value propagation, determinism verification
+- **245 tests** — Rules engine boundaries, API validation, error handling, unknown value propagation, determinism verification
 
 ## Architecture
 
@@ -105,14 +63,13 @@ components/
   Pipeline.tsx                 # 3-step workflow indicator
   ErrorBoundary.tsx            # Graceful error recovery
 lib/
-  imnci-rules.ts               # Deterministic rules engine (the classification authority)
+  imnci-rules.ts               # Deterministic rules engine
   types.ts                     # Shared TypeScript types
   fixtures.ts                  # 3 demo cases with expected outcomes
-  sanitize.ts                  # Input sanitization and XSS prevention
+  sanitize.ts                  # Input sanitization
   api/
-    types.ts                   # API request/response types
     validation.ts              # Request body validation
-    errors.ts                  # Structured error handling (no secret leakage)
+    errors.ts                  # Structured error handling
     ai-provider.ts             # Gemini SDK wrapper with timeout
     extract-deterministic.ts   # Regex-based fallback extraction
     map-response.ts            # Raw Gemini output → typed assessment
@@ -128,33 +85,16 @@ lib/
 | AI | Google Gemini API (`gemini-2.5-flash`) via `@google/genai` |
 | Testing | Vitest, Testing Library, jsdom |
 | Linting | ESLint 9 with `eslint-config-next` |
-| Deployment | Vercel, or `output: "standalone"` (Docker/Fly.io/Railway compatible) |
+| Deployment | Vercel (default), or standalone output for Docker/Fly.io/Railway |
 
-## Getting Started
+## Quick Start
 
 ```bash
 git clone https://github.com/Adib-07/IMNCI-Safe.git
 cd IMNCI-Safe
 npm install
-```
-
-Create a `.env` file from the example:
-
-```bash
 cp .env.example .env
-```
-
-Edit `.env` and add your Gemini API key:
-
-```
-GEMINI_API_KEY=your_key_here
-```
-
-The application works without `GEMINI_API_KEY` using deterministic fallback extraction (labeled as demo mode in the UI).
-
-Start the development server:
-
-```bash
+# Add your Gemini API key to .env (optional — app works without it)
 npm run dev
 ```
 
@@ -162,31 +102,59 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | No | Google Gemini API key. If absent, the app uses deterministic regex-based extraction. |
-| `GEMINI_MODEL` | No | Override the Gemini model. Defaults to `gemini-2.5-flash`. |
+| Variable | Required | Environment | Description |
+|----------|----------|-------------|-------------|
+| `GEMINI_API_KEY` | No | All | Google Gemini API key. Without it, the app uses deterministic regex-based extraction. |
+| `GEMINI_MODEL` | No | All | Override the Gemini model. Defaults to `gemini-2.5-flash`. |
 
 See `.env.example` for the template. Never commit `.env` or `.env.local` files.
 
 ## Testing
 
 ```bash
-npm test              # Run all 250 tests
+npm test              # Run all 245 tests
 npm run test:coverage # Run with coverage report
-npm run lint          # ESLint (0 errors, 0 warnings)
-npm run build         # Production build (verifies TypeScript + bundling)
+npm run lint          # ESLint (0 errors)
+npx tsc --noEmit      # TypeScript type check
+npm run build         # Production build
 ```
 
-Test coverage spans:
+## Deployment
 
-| Area | What is tested |
-|------|----------------|
-| Rules engine | Age boundaries (2, 11, 12, 59 months), RR thresholds (39, 40, 49, 50 bpm), all 4 danger signs individually and simultaneously, chest indrawing, stridor, unknown handling, determinism (identical input → identical output), mixed scenarios |
-| API validation | Request body structure, text length bounds, image format, demo case IDs, injection pattern detection |
-| Error handling | Missing API key, provider timeout, malformed response, schema mismatch, rate limiting — all fall back safely |
-| Deterministic extraction | Age parsing, cough detection, RR extraction, danger sign regex, ambiguous phrase detection, missing field propagation |
-| Response mapping | Type coercion, missing field defaults, evidence propagation, unknown value handling |
+### Vercel (Recommended)
+
+Push to GitHub and connect the repository to Vercel. The app uses default Next.js output — no special configuration needed.
+
+**Environment variables in Vercel dashboard:**
+
+| Variable | Value |
+|----------|-------|
+| `GEMINI_API_KEY` | Your Gemini API key (optional) |
+
+### Docker / Fly.io / Railway
+
+The app supports `output: "standalone"` for container deployment. Add to `next.config.ts`:
+
+```ts
+output: "standalone",
+```
+
+## Security
+
+- API keys stored server-side only, never exposed to the client
+- Content Security Policy headers configured
+- Input sanitization on all user-provided text
+- HSTS, nosniff, and XSS protection headers
+- No sensitive data logged
+- See [SECURITY.md](SECURITY.md) for vulnerability reporting
+
+## Safety & Clinical Limitations
+
+- **Not a medical device** — This is a software prototype for clinical decision support
+- **Protocol subset** — Implements Acute Respiratory Infection & General Danger Signs for children 2–59 months only
+- **No fever, diarrhea, or ear/throat modules** — Additional IMNCI modules are not covered
+- **Human confirmation mandatory** — A qualified health worker must always review and confirm
+- **UNKNOWN blocks classification** — Missing critical information prevents the system from producing a result
 
 ## Project Structure
 
@@ -194,15 +162,10 @@ Test coverage spans:
 ├── app/                  # Next.js pages and API routes
 ├── components/           # React UI components
 ├── lib/                  # Core logic (rules engine, types, fixtures)
-│   └── api/              # API layer (validation, errors, AI provider, extraction)
+│   └── api/              # API layer (validation, errors, AI provider)
 ├── public/               # Static assets
 ├── tests/                # Test setup
 ├── .github/workflows/    # CI pipeline
-├── 01_PRD.md             # Product requirements
-├── 02_ARCHITECTURE.md    # System architecture
-├── 03_RULES.md           # Clinical protocol rules
-├── 07_RESEARCH_EVIDENCE.md  # Clinical evidence sources
-├── 11_API_AND_DATA.md    # API and data infrastructure
 ├── SECURITY.md           # Security policy
 └── .env.example          # Environment variable template
 ```
@@ -211,13 +174,11 @@ Test coverage spans:
 
 | Document | Description |
 |----------|-------------|
-| [01_PRD.md](01_PRD.md) | Product requirements and scope |
-| [02_ARCHITECTURE.md](02_ARCHITECTURE.md) | System architecture and data flow |
-| [03_RULES.md](03_RULES.md) | Clinical protocol implementation rules |
-| [07_RESEARCH_EVIDENCE.md](07_RESEARCH_EVIDENCE.md) | Clinical evidence and NHM/WHO sources |
-| [11_API_AND_DATA.md](11_API_AND_DATA.md) | API infrastructure and test fixtures |
-| [10_DEMO_SCRIPT.md](10_DEMO_SCRIPT.md) | Demo walkthrough |
-| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
+| [01_PRD.md](01_PRD.md) | Product requirements |
+| [02_ARCHITECTURE.md](02_ARCHITECTURE.md) | System architecture |
+| [03_RULES.md](03_RULES.md) | Clinical protocol rules |
+| [07_RESEARCH_EVIDENCE.md](07_RESEARCH_EVIDENCE.md) | Clinical evidence sources |
+| [SECURITY.md](SECURITY.md) | Security policy |
 
 ## Roadmap
 
@@ -225,9 +186,9 @@ Test coverage spans:
 - Multilingual UI localization
 - Voice input with real-time transcription
 - Photo capture for respiratory rate counting
-- Offline-first capability with service worker
-- Persistent session logging for quality improvement (opt-in, anonymized)
+- Offline-first capability
+- Persistent session logging (opt-in, anonymized)
 
 ## License
 
-No license has been specified for this repository. Contact the maintainers for usage terms.
+No license specified. Contact maintainers for usage terms.

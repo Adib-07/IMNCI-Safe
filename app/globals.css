@@ -1,75 +1,55 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* ── Medical Dark Palette ── */
-  --color-med-bg: #0B1720;
-  --color-med-surface: #10232D;
-  --color-med-card: #15313A;
-  --color-med-elevated: #1B3B43;
-  --color-med-primary: #EAF7F5;
-  --color-med-secondary: #A8C3C5;
-  --color-med-muted: #78979B;
-  --color-med-teal: #2BB7A9;
-  --color-med-teal-light: #73DED0;
-  --color-med-amber: #F2B84B;
-  --color-med-red: #E75D5D;
-  --color-med-green: #49C589;
-  --color-med-border: rgba(160, 220, 216, 0.16);
+  /* ── Design Tokens ── */
+  --color-bg: #060B11;
+  --color-surface: #0D1420;
+  --color-card: #111B28;
+  --color-elevated: #172333;
+  --color-hover: #1C2A3C;
 
-  /* ── IMNCI Triage Colors (Calm Medical Dark) ── */
-  --color-triage-urgent: #E75D5D;
-  --color-triage-urgent-bg: rgba(231, 93, 93, 0.12);
-  --color-triage-urgent-border: rgba(231, 93, 93, 0.4);
+  --color-text: #E8EDF4;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-text-inverse: #060B11;
 
-  --color-triage-treatment: #F2B84B;
-  --color-triage-treatment-bg: rgba(242, 184, 75, 0.12);
-  --color-triage-treatment-border: rgba(242, 184, 75, 0.4);
+  --color-brand: #2563EB;
+  --color-brand-hover: #1D4ED8;
+  --color-brand-light: #60A5FA;
 
-  --color-triage-homecare: #49C589;
-  --color-triage-homecare-bg: rgba(73, 197, 137, 0.12);
-  --color-triage-homecare-border: rgba(73, 197, 137, 0.4);
+  --color-border: rgba(148, 163, 184, 0.12);
+  --color-border-strong: rgba(148, 163, 184, 0.24);
+  --color-border-focus: rgba(37, 99, 235, 0.5);
 
-  --color-triage-blocked: #F2B84B;
-  --color-triage-blocked-bg: rgba(242, 184, 75, 0.12);
-  --color-triage-blocked-border: rgba(242, 184, 75, 0.4);
+  /* ── IMNCI Triage ── */
+  --color-pink: #DC2626;
+  --color-pink-bg: rgba(220, 38, 38, 0.08);
+  --color-pink-border: rgba(220, 38, 38, 0.35);
 
-  /* ── Clinical Surfaces ── */
-  --color-surface-page: #0B1720;
-  --color-surface-card: #15313A;
-  --color-surface-inset: #10232D;
-  --color-surface-subtle: #1B3B43;
+  --color-yellow: #D97706;
+  --color-yellow-bg: rgba(217, 119, 6, 0.08);
+  --color-yellow-border: rgba(217, 119, 6, 0.35);
 
-  /* ── Ink (text) ── */
-  --color-ink: #EAF7F5;
-  --color-ink-secondary: #A8C3C5;
-  --color-ink-muted: #78979B;
-  --color-ink-inverse: #0B1720;
+  --color-green: #059669;
+  --color-green-bg: rgba(5, 150, 105, 0.08);
+  --color-green-border: rgba(5, 150, 105, 0.35);
 
-  /* ── Structural Borders & Rules ── */
-  --color-rule: rgba(160, 220, 216, 0.16);
-  --color-rule-strong: rgba(160, 220, 216, 0.3);
-
-  /* ── Brand Primary (Medical Teal) ── */
-  --color-brand-primary: #2BB7A9;
-  --color-brand-primary-hover: #22998D;
-  --color-brand-light: #73DED0;
-
-  /* ── Focus ── */
-  --color-focus-ring: rgba(43, 183, 169, 0.4);
+  --color-amber: #D97706;
+  --color-amber-bg: rgba(217, 119, 6, 0.08);
+  --color-amber-border: rgba(217, 119, 6, 0.35);
 
   /* ── Fonts ── */
-  --font-serif: var(--font-heading), var(--font-fraunces), system-ui, sans-serif;
-  --font-sans: var(--font-source-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-inter), system-ui, sans-serif;
+  --font-sans: var(--font-source-sans), var(--font-inter), system-ui, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", "Fira Code", monospace;
 }
 
 :root {
-  --background: #0B1720;
-  --foreground: #EAF7F5;
+  --background: #060B11;
+  --foreground: #E8EDF4;
 }
 
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
@@ -82,15 +62,17 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 0;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-/* Accessible focus styles */
+/* ── Focus ── */
 :focus-visible {
-  outline: 2px solid var(--color-brand-primary);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
-/* Screen reader only utility */
+/* ── Screen Reader Only ── */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -103,59 +85,34 @@ body {
   border-width: 0;
 }
 
-/* Custom scrollbar for dark medical panels */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1C2A3C; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #2563EB; }
 
-::-webkit-scrollbar-track {
-  background: #10232D;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1B3B43;
-  border-radius: 9999px;
-  border: 1px solid rgba(160, 220, 216, 0.16);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #2BB7A9;
-}
-
-/* ── Type Scale ── */
+/* ── Typography Scale ── */
 .type-display {
-  font-family: var(--font-serif);
-  font-size: 2.25rem;
-  line-height: 2.75rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variation-settings: "opsz" 36;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
-.type-display-sm {
-  font-family: var(--font-serif);
-  font-size: 1.75rem;
-  line-height: 2.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variation-settings: "opsz" 24;
-}
-
-.type-title {
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  font-variation-settings: "opsz" 18;
-}
-
-.type-subtitle {
-  font-size: 1rem;
+.type-h2 {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
   line-height: 1.5rem;
-  font-weight: 500;
-  color: #9CA3AF;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.type-h3 {
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  font-weight: 600;
 }
 
 .type-body {
@@ -164,15 +121,15 @@ body {
   font-weight: 400;
 }
 
-.type-body-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+.type-small {
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   font-weight: 400;
 }
 
 .type-caption {
-  font-size: 0.8125rem;
-  line-height: 1.125rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 500;
 }
 
@@ -182,7 +139,6 @@ body {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #6B7280;
 }
 
 .type-micro {
@@ -192,264 +148,55 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* ── Tabular numerics ── */
+/* ── Tabular Numerics ── */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
 /* ── Animations ── */
-@keyframes unlock-resolve {
-  0% { transform: scale(1); }
-  15% { transform: scale(0.97); }
-  40% { transform: scale(1.01); }
-  100% { transform: scale(1); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
 }
 
-.animate-unlock {
-  animation: unlock-resolve 0.5s cubic-bezier(0.34, 1.64, 0.64, 1) forwards;
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-3px); }
+  40%, 80% { transform: translateX(3px); }
 }
 
-.animate-fade-in {
-  animation: fade-in-up 0.3s ease-out forwards;
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+.animate-fade-in { animation: fade-in 0.25s ease-out forwards; }
+.animate-shake { animation: shake 0.35s ease-in-out; }
+.animate-skeleton { animation: skeleton-pulse 1.5s ease-in-out infinite; }
 
 .spinner {
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #60A5FA;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(37, 99, 235, 0.15);
+  border-top-color: var(--color-brand);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
 
-/* ── Pipeline stage animation ── */
-@keyframes stage-light {
-  0% { opacity: 0.3; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
-}
-
-.pipeline-stage-active {
-  animation: stage-light 0.8s ease-in-out forwards;
-}
-
-/* ── Segment Control (dark mode) ── */
-.segmented-control {
-  display: flex;
-  border: 1px solid #374151;
-  border-radius: 8px;
-  overflow: hidden;
-  background: rgba(31, 41, 55, 0.5);
-}
-
-.segmented-control button {
-  flex: 1;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1rem;
-  border: none;
-  background: transparent;
-  color: #9CA3AF;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border-right: 1px solid #374151;
-  font-family: var(--font-sans);
-}
-
-.segmented-control button:last-child {
-  border-right: none;
-}
-
-.segmented-control button:hover {
-  background: rgba(55, 65, 81, 0.5);
-  color: #D1D5DB;
-}
-
-.segmented-control button:focus-visible {
-  outline: 2px solid #60A5FA;
-  outline-offset: -2px;
-  z-index: 1;
-}
-
-.segmented-control button.active-yes {
-  background: rgba(236, 72, 153, 0.15);
-  color: #F472B6;
-  font-weight: 600;
-}
-
-.segmented-control button.active-no {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34D399;
-  font-weight: 600;
-}
-
-.segmented-control button.active-unknown {
-  background: rgba(245, 158, 11, 0.15);
-  color: #FBBF24;
-  font-weight: 600;
-}
-
-/* ── IMNCI Chart Row ── */
-.chart-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.625rem 0;
-  border-bottom: 1px solid rgba(31, 41, 55, 0.6);
-}
-
-.chart-row:last-child {
-  border-bottom: none;
-}
-
-.chart-row-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.chart-row-control {
-  flex-shrink: 0;
-}
-
-/* ── Custom Scrollbar ── */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #374151;
-  border-radius: 2px;
-}
-
 /* ── Reduced Motion ── */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-
-  .spinner {
-    animation: spin 1.2s linear infinite;
-  }
-}
-
-/* ── Focus Ring Utility ── */
-.focus-ring:focus-visible {
-  outline: 2px solid #60A5FA;
-  outline-offset: 2px;
-}
-
-/* ── Hairline Rule ── */
-.hairline-rule {
-  border: none;
-  border-top: 1px solid #1F2937;
-}
-
-/* ── Pipeline connector ── */
-.pipeline-connector {
-  width: 1px;
-  background: #374151;
-  flex-shrink: 0;
-}
-
-/* ── Checklist indicator ── */
-.check-indicator {
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid #374151;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-.check-indicator.checked {
-  background: #10B981;
-  border-color: #10B981;
-}
-
-.check-indicator.checked::after {
-  content: "";
-  width: 6px;
-  height: 3px;
-  border-left: 1.5px solid white;
-  border-bottom: 1.5px solid white;
-  transform: rotate(-45deg) translateY(-1px);
-}
-
-/* ── Shake animation (input validation error) ── */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 50%, 90% { transform: translateX(-4px); }
-  30%, 70% { transform: translateX(4px); }
-}
-
-.animate-shake {
-  animation: shake 0.4s ease-in-out;
-}
-
-/* ── Cascade enter (entity pills) ── */
-@keyframes cascade-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.animate-cascade-enter {
-  animation: cascade-enter 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-/* ── Skeleton pulse (enhanced) ── */
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
-}
-
-.animate-skeleton-pulse {
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
-}
-
-/* ── Hero grid background ── */
-.hero-grid {
-  background-image:
-    linear-gradient(rgba(99, 102, 241, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99, 102, 241, 0.06) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse at 50% 0%, black 40%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 40%, transparent 70%);
+  .spinner { animation-duration: 1.2s !important; }
 }

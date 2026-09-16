@@ -1,19 +1,18 @@
 "use client";
 
 import React from "react";
-import { 
-  CheckCircle2, 
-  AlertTriangle, 
-  Quote, 
-  Brain, 
+import {
+  CheckCircle2,
+  AlertTriangle,
+  Quote,
+  Brain,
   Sparkles,
   HelpCircle,
-  RotateCcw
 } from "lucide-react";
-import type { 
-  GeminiExtractionResponse, 
-  ProtocolResult, 
-  ImnciAssessment
+import type {
+  GeminiExtractionResponse,
+  ProtocolResult,
+  ImnciAssessment,
 } from "@/lib/types";
 
 interface VerificationPanelProps {
@@ -28,7 +27,6 @@ interface VerificationPanelProps {
   ) => void;
   onConfirmAndEvaluate: () => void;
   hasUserModified: boolean;
-  onResetSession?: () => void;
 }
 
 export function VerificationPanel({
@@ -38,25 +36,21 @@ export function VerificationPanel({
   onUpdateField,
   onConfirmAndEvaluate,
   hasUserModified,
-  onResetSession,
 }: VerificationPanelProps) {
-
   if (isExtracting) {
     return (
-      <div className="bg-[#15313A] border border-[rgba(160,220,216,0.16)] rounded-xl p-8 flex flex-col items-center justify-center min-h-[380px] text-center shadow-lg">
+      <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-8 flex flex-col items-center justify-center min-h-[380px] text-center">
         <div className="relative w-14 h-14 mb-4">
-          <div className="w-14 h-14 rounded-full border-3 border-[#2BB7A9]/20 border-t-[#2BB7A9] animate-spin" />
-          <Brain className="w-6 h-6 text-[#2BB7A9] absolute inset-0 m-auto" />
+          <div className="w-14 h-14 rounded-full border-[3px] border-[var(--color-brand)]/20 border-t-[var(--color-brand)] animate-spin" />
+          <Brain className="w-6 h-6 text-[var(--color-brand)] absolute inset-0 m-auto" />
         </div>
-        <h3 className="text-base font-bold text-[#EAF7F5]">
-          Extracting Clinical Evidence...
-        </h3>
-        <p className="text-xs text-[#A8C3C5] max-w-md mt-1.5 leading-relaxed">
-          Gemini is parsing medical observations, identifying clinical symptoms, mapping exact verbatim quotations, and verifying age cohort parameters.
+        <h3 className="type-h3 text-[var(--color-text)]">Extracting Clinical Facts…</h3>
+        <p className="type-small text-[var(--color-text-secondary)] max-w-md mt-1.5">
+          Parsing observations, mapping verbatim quotations, and verifying age cohort parameters.
         </p>
-        <div className="mt-5 flex items-center gap-2 text-xs text-[#73DED0] bg-[#10232D] px-3.5 py-1.5 rounded-full border border-[rgba(160,220,216,0.2)]">
-          <Sparkles className="w-3.5 h-3.5 text-[#2BB7A9]" />
-          <span>Structured clinical schema validation active</span>
+        <div className="mt-5 flex items-center gap-2 text-xs text-[var(--color-brand-light)] bg-[var(--color-surface)] px-3.5 py-1.5 rounded-full border border-[var(--color-border)]">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Structured schema validation active</span>
         </div>
       </div>
     );
@@ -64,34 +58,26 @@ export function VerificationPanel({
 
   if (!extraction || !assessment) {
     return (
-      <div className="bg-[#15313A] border border-dashed border-[rgba(160,220,216,0.2)] rounded-xl p-8 flex flex-col items-center justify-center min-h-[380px] text-center">
-        <div className="w-12 h-12 rounded-full bg-[#10232D] border border-[rgba(160,220,216,0.16)] flex items-center justify-center text-[#78979B] mb-3">
+      <div className="bg-[var(--color-card)] border border-dashed border-[var(--color-border-strong)] rounded-xl p-8 flex flex-col items-center justify-center min-h-[380px] text-center">
+        <div className="w-12 h-12 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] mb-3">
           <Quote className="w-5 h-5" />
         </div>
-        <h3 className="text-sm font-semibold text-[#EAF7F5]">
-          No Clinical Facts Extracted Yet
-        </h3>
-        <p className="text-xs text-[#A8C3C5] max-w-sm mt-1">
-          Select a guided demo case on the left or enter field observations to extract structured clinical facts against the IMNCI protocol.
+        <h3 className="type-h3 text-[var(--color-text)]">No Facts Extracted Yet</h3>
+        <p className="type-small text-[var(--color-text-secondary)] max-w-sm mt-1">
+          Enter field observations or select a demo case to extract structured clinical facts.
         </p>
       </div>
     );
   }
 
-  // Calculate fast breathing cutoff and status
   const ageMonths = assessment.age_months;
   const rr = assessment.respiratory_rate;
-  let fastBreathingThresholdText = "Age required to evaluate cutoff";
   let isFastBreathing = false;
 
   if (typeof ageMonths === "number") {
-    if (ageMonths < 2) {
-      fastBreathingThresholdText = "Young Infant (0–2 mo): cutoff ≥ 60 bpm (refer immediately)";
-    } else if (ageMonths <= 11) {
-      fastBreathingThresholdText = "Infant (2–11 mo): Fast breathing cutoff is ≥ 50 bpm";
+    if (ageMonths >= 2 && ageMonths <= 11) {
       if (typeof rr === "number" && rr >= 50) isFastBreathing = true;
-    } else {
-      fastBreathingThresholdText = "Child (12–59 mo): Fast breathing cutoff is ≥ 40 bpm";
+    } else if (ageMonths >= 12) {
       if (typeof rr === "number" && rr >= 40) isFastBreathing = true;
     }
   }
@@ -99,7 +85,6 @@ export function VerificationPanel({
   const missingFields = extraction.missing_critical_fields || [];
   const hasMissing = missingFields.length > 0;
 
-  // Identify ONE primary next question to complete the protocol
   let primaryNextQuestion: {
     title: string;
     description: string;
@@ -111,74 +96,67 @@ export function VerificationPanel({
   if (assessment.danger_signs?.unable_to_drink_or_breastfeed === "unknown" || assessment.danger_signs?.unable_to_drink_or_breastfeed === null) {
     primaryNextQuestion = {
       title: "Can the child drink or breastfeed normally?",
-      description: "Inability to drink or breastfeed is an IMNCI General Danger Sign requiring urgent hospital referral.",
+      description: "Inability to drink is a General Danger Sign — urgent referral required.",
       fieldKey: "unable_to_drink",
       isDangerSign: true,
       options: [
         { label: "Yes, drinks normally", value: false },
-        { label: "No, cannot drink / vomits", value: true },
-        { label: "Cannot determine yet", value: "unknown" },
-      ]
+        { label: "No, cannot drink", value: true },
+        { label: "Cannot determine", value: "unknown" },
+      ],
     };
   } else if (assessment.respiratory_rate === null || assessment.respiratory_rate === undefined) {
     primaryNextQuestion = {
-      title: "What is the child's respiratory rate in 1 minute?",
-      description: "Count breaths for full 60 seconds with child calm. Governs pneumonia classification.",
+      title: "What is the respiratory rate (breaths per minute)?",
+      description: "Count breaths for 60 seconds with child calm.",
       fieldKey: "respiratory_rate",
       isDangerSign: false,
       options: [
-        { label: "Normal (32 bpm)", value: 32 },
-        { label: "Fast (46 bpm)", value: 46 },
-        { label: "Very fast (62 bpm)", value: 62 },
-      ]
+        { label: "32 bpm", value: 32 },
+        { label: "46 bpm", value: 46 },
+        { label: "62 bpm", value: 62 },
+      ],
     };
   } else if (assessment.danger_signs?.has_convulsions === "unknown" || assessment.danger_signs?.has_convulsions === null) {
     primaryNextQuestion = {
-      title: "Did the child have convulsions or fits during this illness?",
-      description: "Convulsions indicate central nervous system involvement or severe malaria.",
+      title: "Did the child have convulsions during this illness?",
+      description: "Convulsions indicate severe illness or CNS involvement.",
       fieldKey: "convulsions",
       isDangerSign: true,
       options: [
         { label: "No convulsions", value: false },
         { label: "Yes, had convulsions", value: true },
-      ]
+      ],
     };
   } else if (assessment.chest_indrawing === "unknown" || assessment.chest_indrawing === null) {
     primaryNextQuestion = {
-      title: "Is chest indrawing (subcostal retraction) present?",
-      description: "Lower chest wall moves in when the child breathes in.",
+      title: "Is chest indrawing present?",
+      description: "Lower chest wall moving inward during breathing.",
       fieldKey: "chest_indrawing",
       isDangerSign: false,
       options: [
-        { label: "No chest indrawing", value: false },
-        { label: "Yes, chest indrawing present", value: true },
-      ]
+        { label: "No indrawing", value: false },
+        { label: "Yes, indrawing present", value: true },
+      ],
     };
   }
 
-  // Define structured table rows: Field | Value | Source | Status
   const tableRows = [
     {
       key: "age_months",
       label: "Child Age",
-      valueDisplay: typeof assessment.age_months === "number" ? `${assessment.age_months} months` : "Missing",
+      valueDisplay: typeof assessment.age_months === "number" ? `${assessment.age_months} mo` : "—",
       valueType: "number",
-      quote: extraction.verbatim_quotes?.age_months || "Extracted from text",
       status: typeof assessment.age_months === "number" ? "Verified" : "Missing",
-      statusColor: typeof assessment.age_months === "number" ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
       isDanger: false,
       currentVal: assessment.age_months,
     },
     {
       key: "respiratory_rate",
       label: "Respiratory Rate",
-      valueDisplay: typeof assessment.respiratory_rate === "number" ? `${assessment.respiratory_rate} bpm (${isFastBreathing ? "Fast" : "Normal"})` : "Not Counted",
+      valueDisplay: typeof assessment.respiratory_rate === "number" ? `${assessment.respiratory_rate} bpm${isFastBreathing ? " ⚠" : ""}` : "—",
       valueType: "number",
-      quote: extraction.verbatim_quotes?.respiratory_rate ? `${extraction.verbatim_quotes.respiratory_rate} • ${fastBreathingThresholdText}` : fastBreathingThresholdText,
-      status: typeof assessment.respiratory_rate === "number" ? (isFastBreathing ? "Trigger (Fast)" : "Normal") : "Missing",
-      statusColor: typeof assessment.respiratory_rate === "number" 
-        ? (isFastBreathing ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" : "bg-[rgba(73,197,137,0.15)] text-[#49C589]")
-        : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
+      status: typeof assessment.respiratory_rate === "number" ? (isFastBreathing ? "Fast" : "Normal") : "Missing",
       isDanger: false,
       currentVal: assessment.respiratory_rate,
     },
@@ -187,182 +165,115 @@ export function VerificationPanel({
       label: "Chest Indrawing",
       valueDisplay: assessment.chest_indrawing === true ? "Present" : assessment.chest_indrawing === false ? "Absent" : "Unknown",
       valueType: "three_way",
-      quote: extraction.verbatim_quotes?.chest_indrawing || "Observation",
-      status: assessment.chest_indrawing === true ? "Urgent Trigger" : assessment.chest_indrawing === false ? "Absent" : "Unknown",
-      statusColor: assessment.chest_indrawing === true 
-        ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.chest_indrawing === false 
-        ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
-        : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
+      status: assessment.chest_indrawing === true ? "Urgent" : assessment.chest_indrawing === false ? "Absent" : "Unknown",
       isDanger: false,
       currentVal: assessment.chest_indrawing,
     },
     {
       key: "stridor",
-      label: "Stridor in Calm State",
+      label: "Stridor (Calm)",
       valueDisplay: assessment.stridor === true ? "Present" : assessment.stridor === false ? "Absent" : "Unknown",
       valueType: "three_way",
-      quote: extraction.verbatim_quotes?.stridor || "Observation",
-      status: assessment.stridor === true ? "Urgent Trigger" : assessment.stridor === false ? "Absent" : "Unknown",
-      statusColor: assessment.stridor === true 
-        ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.stridor === false 
-        ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
-        : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
+      status: assessment.stridor === true ? "Urgent" : assessment.stridor === false ? "Absent" : "Unknown",
       isDanger: false,
       currentVal: assessment.stridor,
     },
     {
       key: "convulsions",
-      label: "Convulsions (Seizures)",
+      label: "Convulsions",
       valueDisplay: assessment.danger_signs?.has_convulsions === true ? "Present" : assessment.danger_signs?.has_convulsions === false ? "Absent" : "Unknown",
       valueType: "three_way",
-      quote: extraction.verbatim_quotes?.convulsions || "Caregiver history",
-      status: assessment.danger_signs?.has_convulsions === true ? "Danger Sign" : assessment.danger_signs?.has_convulsions === false ? "Absent" : "Unknown",
-      statusColor: assessment.danger_signs?.has_convulsions === true 
-        ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.danger_signs?.has_convulsions === false 
-        ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
-        : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
+      status: assessment.danger_signs?.has_convulsions === true ? "Danger" : assessment.danger_signs?.has_convulsions === false ? "Absent" : "Unknown",
       isDanger: true,
       currentVal: assessment.danger_signs?.has_convulsions,
     },
     {
       key: "unable_to_drink",
-      label: "Unable to drink / breastfeed",
-      valueDisplay: assessment.danger_signs?.unable_to_drink_or_breastfeed === true ? "Cannot drink" : assessment.danger_signs?.unable_to_drink_or_breastfeed === false ? "Drinking normally" : "Unknown",
+      label: "Unable to Drink",
+      valueDisplay: assessment.danger_signs?.unable_to_drink_or_breastfeed === true ? "Cannot drink" : assessment.danger_signs?.unable_to_drink_or_breastfeed === false ? "Drinking" : "Unknown",
       valueType: "three_way",
-      quote: extraction.verbatim_quotes?.unable_to_drink || "Caregiver history",
-      status: assessment.danger_signs?.unable_to_drink_or_breastfeed === true ? "Danger Sign" : assessment.danger_signs?.unable_to_drink_or_breastfeed === false ? "Absent" : "Unknown",
-      statusColor: assessment.danger_signs?.unable_to_drink_or_breastfeed === true 
-        ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.danger_signs?.unable_to_drink_or_breastfeed === false 
-        ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
-        : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
+      status: assessment.danger_signs?.unable_to_drink_or_breastfeed === true ? "Danger" : assessment.danger_signs?.unable_to_drink_or_breastfeed === false ? "Absent" : "Unknown",
       isDanger: true,
       currentVal: assessment.danger_signs?.unable_to_drink_or_breastfeed,
     },
     {
       key: "vomiting_everything",
-      label: "Vomits everything",
+      label: "Vomits Everything",
       valueDisplay: assessment.danger_signs?.vomits_everything === true ? "Present" : assessment.danger_signs?.vomits_everything === false ? "Absent" : "Unknown",
       valueType: "three_way",
-      quote: extraction.verbatim_quotes?.vomiting_everything || "Caregiver history",
-      status: assessment.danger_signs?.vomits_everything === true ? "Danger Sign" : assessment.danger_signs?.vomits_everything === false ? "Absent" : "Unknown",
-      statusColor: assessment.danger_signs?.vomits_everything === true 
-        ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.danger_signs?.vomits_everything === false 
-        ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
-        : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
+      status: assessment.danger_signs?.vomits_everything === true ? "Danger" : assessment.danger_signs?.vomits_everything === false ? "Absent" : "Unknown",
       isDanger: true,
       currentVal: assessment.danger_signs?.vomits_everything,
     },
     {
       key: "lethargic_or_unconscious",
-      label: "Abnormally sleepy / Lethargic",
+      label: "Lethargic / Unconscious",
       valueDisplay: assessment.danger_signs?.lethargic_or_unconscious === true ? "Present" : assessment.danger_signs?.lethargic_or_unconscious === false ? "Alert" : "Unknown",
       valueType: "three_way",
-      quote: extraction.verbatim_quotes?.lethargic_or_unconscious || "Observation",
-      status: assessment.danger_signs?.lethargic_or_unconscious === true ? "Danger Sign" : assessment.danger_signs?.lethargic_or_unconscious === false ? "Absent" : "Unknown",
-      statusColor: assessment.danger_signs?.lethargic_or_unconscious === true 
-        ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.danger_signs?.lethargic_or_unconscious === false 
-        ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
-        : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
+      status: assessment.danger_signs?.lethargic_or_unconscious === true ? "Danger" : assessment.danger_signs?.lethargic_or_unconscious === false ? "Absent" : "Unknown",
       isDanger: true,
       currentVal: assessment.danger_signs?.lethargic_or_unconscious,
     },
   ];
 
+  const statusColor = (status: string) => {
+    if (status === "Verified" || status === "Normal" || status === "Absent" || status === "Alert") return "bg-[var(--color-green-bg)] text-[var(--color-green)] border-[var(--color-green-border)]";
+    if (status === "Missing" || status === "Unknown") return "bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] border-[var(--color-yellow-border)]";
+    if (status === "Fast" || status === "Urgent" || status === "Danger" || status === "Trigger") return "bg-[var(--color-pink-bg)] text-[var(--color-pink)] border-[var(--color-pink-border)]";
+    return "bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)]";
+  };
+
   return (
-    <div data-testid="verification-panel" className="flex flex-col gap-4 bg-[#15313A] border border-[rgba(160,220,216,0.16)] rounded-xl p-4 sm:p-5 shadow-lg">
+    <div data-testid="verification-panel" className="flex flex-col gap-4 bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-4 sm:p-5">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[#2BB7A9]" />
-            <h2 className="text-sm font-bold text-[#EAF7F5] uppercase tracking-wider">
-              2. Review Extracted Facts
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            {hasUserModified && (
-              <span className="text-[10px] font-semibold text-[#73DED0] bg-[#10232D] px-2 py-0.5 rounded border border-[rgba(160,220,216,0.2)]">
-                Worker Modified
-              </span>
-            )}
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded border bg-[#10232D] text-[#A8C3C5] border-[rgba(160,220,216,0.16)]">
-              Confidence: {extraction.extraction_confidence || "High"}
+        <div className="flex items-center gap-2 mb-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]" />
+          <h2 className="type-h3 text-[var(--color-text)]">
+            Verify Extracted Facts
+          </h2>
+          {hasUserModified && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/10 text-[var(--color-brand-light)] border border-[var(--color-brand)]/30">
+              Modified
             </span>
-          </div>
+          )}
         </div>
-        <p className="text-xs text-[#A8C3C5] mt-1">
-          Every clinical finding is verified against verbatim source quotes. The frontline health worker retains final authority to edit or override any parameter.
+        <p className="type-small text-[var(--color-text-secondary)]">
+          Review AI-extracted findings. Correct any parameter. The rules engine runs on what you confirm.
         </p>
       </div>
 
-      {/* THE MOST IMPORTANT UX STATE: CANNOT CLASSIFY SAFELY YET */}
+      {/* Missing Warning */}
       {hasMissing && (
-        <div className="bg-[#10232D] border-2 border-[#F2B84B] rounded-xl p-4 sm:p-5 text-[#EAF7F5] shadow-md">
+        <div className="bg-[var(--color-yellow-bg)] border border-[var(--color-yellow-border)] rounded-lg p-4 animate-fade-in">
           <div className="flex items-center gap-2.5 mb-2">
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[rgba(242,184,75,0.2)] text-[#F2B84B]">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-[#F2B84B] uppercase tracking-wider">
-                CANNOT CLASSIFY SAFELY YET
-              </div>
-              <p className="text-xs text-[#A8C3C5]">
-                Missing {missingFields.length} critical protocol item{missingFields.length > 1 ? "s" : ""}. Under IMNCI rules, an unexamined symptom is an unknown risk.
-              </p>
-            </div>
+            <AlertTriangle className="w-4 h-4 text-[var(--color-yellow)] shrink-0" />
+            <span className="type-label text-[var(--color-yellow)]">
+              Cannot Classify Yet — {missingFields.length} Required Field{missingFields.length > 1 ? "s" : ""} Missing
+            </span>
           </div>
-
-          {/* Known facts summary chip list */}
-          <div className="mt-3 pt-3 border-t border-[rgba(160,220,216,0.1)] flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[11px] font-semibold text-[#78979B]">Known facts:</span>
-            {typeof assessment.age_months === "number" && (
-              <span className="px-2 py-0.5 rounded bg-[#15313A] text-[#73DED0] border border-[rgba(160,220,216,0.16)] text-[11px]">
-                Age: {assessment.age_months}m
-              </span>
-            )}
-            {typeof assessment.respiratory_rate === "number" && (
-              <span className="px-2 py-0.5 rounded bg-[#15313A] text-[#73DED0] border border-[rgba(160,220,216,0.16)] text-[11px]">
-                RR: {assessment.respiratory_rate} bpm
-              </span>
-            )}
-            {assessment.chest_indrawing !== "unknown" && assessment.chest_indrawing !== null && (
-              <span className="px-2 py-0.5 rounded bg-[#15313A] text-[#73DED0] border border-[rgba(160,220,216,0.16)] text-[11px]">
-                Indrawing: {assessment.chest_indrawing ? "Yes" : "No"}
-              </span>
-            )}
-            {missingFields.map((field, idx) => (
-              <span key={idx} className="px-2 py-0.5 rounded bg-[rgba(242,184,75,0.15)] text-[#F2B84B] border border-[rgba(242,184,75,0.3)] text-[11px] font-mono">
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {missingFields.map((field, i) => (
+              <span key={i} className="text-[11px] font-mono px-2 py-0.5 rounded bg-[var(--color-card)] text-[var(--color-yellow)] border border-[var(--color-yellow-border)]">
                 ? {field}
               </span>
             ))}
           </div>
 
-          {/* ONE Next Question & Quick Answer Buttons */}
           {primaryNextQuestion && (
-            <div className="mt-4 p-3.5 bg-[#15313A] border border-[rgba(242,184,75,0.4)] rounded-lg">
+            <div className="mt-3 p-3 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg">
               <div className="flex items-start gap-2">
-                <HelpCircle className="w-4 h-4 text-[#F2B84B] shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-[#EAF7F5]">
-                    {primaryNextQuestion.title}
-                  </div>
-                  <p className="text-[11px] text-[#A8C3C5] mt-0.5">
-                    Why this matters: <span className="text-[#F2B84B] font-medium">{primaryNextQuestion.description}</span>
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                <HelpCircle className="w-4 h-4 text-[var(--color-brand)] shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-xs font-semibold text-[var(--color-text)]">{primaryNextQuestion.title}</div>
+                  <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">{primaryNextQuestion.description}</p>
+                  <div className="flex flex-wrap gap-2 mt-2.5">
                     {primaryNextQuestion.options.map((opt, i) => (
                       <button
                         key={i}
                         type="button"
                         onClick={() => onUpdateField(primaryNextQuestion!.fieldKey, opt.value, primaryNextQuestion!.isDangerSign)}
-                        className="px-3 py-1.5 text-xs font-bold rounded bg-[#10232D] text-[#73DED0] border border-[rgba(160,220,216,0.2)] hover:bg-[#2BB7A9] hover:text-[#0B1720] hover:border-[#2BB7A9] transition-colors"
+                        className="px-3 py-1.5 text-xs font-semibold rounded-md bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-brand)] hover:text-white hover:border-[var(--color-brand)] transition-all"
                       >
                         {opt.label}
                       </button>
@@ -372,122 +283,68 @@ export function VerificationPanel({
               </div>
             </div>
           )}
-
-          {/* Actions: Answer question, Edit extracted facts, Start over */}
-          <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[rgba(160,220,216,0.1)] text-xs">
-            <span className="text-[11px] text-[#78979B]">
-              Protocol cannot classify until required facts are confirmed.
-            </span>
-            {onResetSession && (
-              <button
-                type="button"
-                onClick={onResetSession}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#A8C3C5] hover:text-[#E75D5D] transition-colors"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Start over</span>
-              </button>
-            )}
-          </div>
         </div>
       )}
 
-      {/* Extraction Language & Verbatim Metadata */}
-      {extraction.detected_language && (
-        <div className="flex items-center justify-between px-3 py-2 bg-[#10232D] border border-[rgba(160,220,216,0.16)] rounded-lg text-xs text-[#A8C3C5]">
-          <div className="flex items-center gap-2">
-            <Quote className="w-3.5 h-3.5 text-[#2BB7A9]" />
-            <span>
-              Extracted from: <strong className="text-[#EAF7F5] font-semibold">{extraction.detected_language}</strong>
-            </span>
-          </div>
-          <span className="text-[11px] text-[#78979B]">
-            Verbatim quotes attached
-          </span>
-        </div>
-      )}
-
-      {/* Compact Table: Field | Value | Source | Status */}
-      <div className="border border-[rgba(160,220,216,0.16)] rounded-lg overflow-hidden bg-[#10232D]">
+      {/* Findings Table */}
+      <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
         <table className="w-full text-left text-xs" role="table" aria-label="Extracted clinical findings">
           <thead>
-            <tr className="bg-[#0B1720] border-b border-[rgba(160,220,216,0.16)] text-[#78979B] font-bold uppercase tracking-wider text-[10px]">
-              <th scope="col" className="py-2.5 px-3">Field</th>
-              <th scope="col" className="py-2.5 px-3">Value</th>
-              <th scope="col" className="py-2.5 px-3 hidden md:table-cell">Source Quote</th>
-              <th scope="col" className="py-2.5 px-3">Status</th>
-              <th scope="col" className="py-2.5 px-3 text-right">Edit</th>
+            <tr className="bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <th scope="col" className="py-2.5 px-3 type-label text-[var(--color-text-muted)]">Field</th>
+              <th scope="col" className="py-2.5 px-3 type-label text-[var(--color-text-muted)]">Value</th>
+              <th scope="col" className="py-2.5 px-3 type-label text-[var(--color-text-muted)] hidden md:table-cell">Source</th>
+              <th scope="col" className="py-2.5 px-3 type-label text-[var(--color-text-muted)]">Status</th>
+              <th scope="col" className="py-2.5 px-3 type-label text-[var(--color-text-muted)] text-right">Edit</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(160,220,216,0.08)]">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {tableRows.map((row) => (
-              <tr key={row.key} className="hover:bg-[#15313A]/60 transition-colors">
-                <td className="py-2.5 px-3 font-semibold text-[#EAF7F5]">
-                  {row.label}
-                </td>
-                <td className="py-2.5 px-3 text-[#A8C3C5]">
-                  {row.valueDisplay}
-                </td>
-                <td className="py-2.5 px-3 text-[#78979B] italic hidden md:table-cell max-w-[200px] truncate" title={row.quote}>
-                  &ldquo;{row.quote}&rdquo;
+              <tr key={row.key} className="hover:bg-[var(--color-surface)]/60 transition-colors">
+                <td className="py-2.5 px-3 font-semibold text-[var(--color-text)] text-[13px]">{row.label}</td>
+                <td className="py-2.5 px-3 text-[var(--color-text-secondary)] font-mono tabular-nums">{row.valueDisplay}</td>
+                <td className="py-2.5 px-3 text-[var(--color-text-muted)] hidden md:table-cell">
+                  {extraction.verbatim_quotes?.[row.key as keyof typeof extraction.verbatim_quotes] || "—"}
                 </td>
                 <td className="py-2.5 px-3">
-                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${row.statusColor}`} role="status">
+                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${statusColor(row.status)}`}>
                     {row.status}
                   </span>
                 </td>
                 <td className="py-2.5 px-3 text-right">
                   {row.valueType === "three_way" ? (
-                    <fieldset className="inline-flex items-center rounded border border-[rgba(160,220,216,0.16)] overflow-hidden bg-[#0B1720] p-0.5" aria-label={`Edit ${row.label}`}>
+                    <fieldset className="inline-flex items-center rounded border border-[var(--color-border)] overflow-hidden" aria-label={`Edit ${row.label}`}>
                       <legend className="sr-only">{row.label}</legend>
-                      <button
-                        type="button"
-                        onClick={() => onUpdateField(row.key, true, row.isDanger)}
-                        aria-pressed={row.currentVal === true}
-                        aria-label={`${row.label}: Present`}
-                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
-                          row.currentVal === true
-                            ? "bg-[#E75D5D] text-white"
-                            : "text-[#78979B] hover:text-[#EAF7F5]"
-                        }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onUpdateField(row.key, false, row.isDanger)}
-                        aria-pressed={row.currentVal === false}
-                        aria-label={`${row.label}: Absent`}
-                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
-                          row.currentVal === false
-                            ? "bg-[#2BB7A9] text-[#0B1720]"
-                            : "text-[#78979B] hover:text-[#EAF7F5]"
-                        }`}
-                      >
-                        No
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onUpdateField(row.key, "unknown", row.isDanger)}
-                        aria-pressed={row.currentVal === "unknown" || row.currentVal === null}
-                        aria-label={`${row.label}: Unknown`}
-                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
-                          row.currentVal === "unknown" || row.currentVal === null
-                            ? "bg-[#F2B84B] text-[#0B1720]"
-                            : "text-[#78979B] hover:text-[#EAF7F5]"
-                        }`}
-                      >
-                        ?
-                      </button>
+                      {(["Yes", "No", "?"] as const).map((label, i) => {
+                        const val = i === 0 ? true : i === 1 ? false : "unknown";
+                        const isActive = row.currentVal === val || (val === "unknown" && (row.currentVal === "unknown" || row.currentVal === null));
+                        return (
+                          <button
+                            key={label}
+                            type="button"
+                            onClick={() => onUpdateField(row.key, val, row.isDanger)}
+                            aria-pressed={isActive}
+                            className={`px-1.5 py-0.5 text-[10px] font-bold transition-colors ${
+                              isActive
+                                ? label === "Yes" ? "bg-[var(--color-pink)] text-white"
+                                  : label === "No" ? "bg-[var(--color-brand)] text-white"
+                                  : "bg-[var(--color-yellow)] text-[var(--color-text-inverse)]"
+                                : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </fieldset>
                   ) : (
                     <input
                       type="number"
                       value={typeof row.currentVal === "number" ? row.currentVal : ""}
                       onChange={(e) => onUpdateField(row.key, e.target.value ? parseInt(e.target.value, 10) : null)}
-                      placeholder="Enter"
-                      aria-label={`Enter ${row.label} value`}
-                      className="w-16 px-1.5 py-0.5 text-xs text-center font-mono bg-[#0B1720] border border-[rgba(160,220,216,0.2)] rounded text-[#EAF7F5] focus:border-[#2BB7A9] focus:outline-none focus:ring-1 focus:ring-[#2BB7A9]"
+                      placeholder="—"
+                      aria-label={`Enter ${row.label}`}
+                      className="w-16 px-1.5 py-0.5 text-xs text-center font-mono bg-[var(--color-surface)] border border-[var(--color-border)] rounded text-[var(--color-text)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-border-focus)]"
                     />
                   )}
                 </td>
@@ -497,22 +354,20 @@ export function VerificationPanel({
         </table>
       </div>
 
-      {/* Confirmation CTA */}
-      <div className="pt-2 border-t border-[rgba(160,220,216,0.1)] flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="text-[11px] text-[#78979B]">
-          Frontline worker verification ensures clinical fidelity before rule classification.
-        </div>
-
+      {/* Confirm CTA */}
+      <div className="pt-3 border-t border-[var(--color-border)] flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p className="text-[11px] text-[var(--color-text-muted)]">
+          Your verification ensures clinical fidelity before protocol evaluation.
+        </p>
         <button
           type="button"
           onClick={onConfirmAndEvaluate}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold text-[#0B1720] bg-[#2BB7A9] hover:bg-[#73DED0] transition-colors shadow-md active:scale-[0.98]"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] transition-all shadow-md active:scale-[0.98]"
         >
-          <CheckCircle2 className="w-4 h-4 text-[#0B1720]" />
-          <span>Confirm Facts & Run Rules Engine</span>
+          <CheckCircle2 className="w-4 h-4" />
+          <span>Confirm Facts &amp; Run Protocol</span>
         </button>
       </div>
     </div>
   );
 }
-

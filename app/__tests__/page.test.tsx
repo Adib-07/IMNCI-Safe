@@ -4,7 +4,7 @@ import React from "react";
 
 // Mock Next.js font imports
 vi.mock("next/font/google", () => ({
-  Fraunces: () => ({ variable: "--font-fraunces", className: "" }),
+  Inter: () => ({ variable: "--font-inter", className: "" }),
   Source_Sans_3: () => ({ variable: "--font-source-sans", className: "" }),
 }));
 
@@ -20,7 +20,7 @@ vi.mock("@/components/Header", () => ({
 
 vi.mock("@/components/Pipeline", () => ({
   Pipeline: ({ activeStep }: { activeStep: number }) => (
-    <nav data-testid="pipeline" aria-label="Clinical workflow steps">
+    <nav data-testid="pipeline" aria-label="Clinical workflow progress">
       <span>Step: {activeStep}</span>
     </nav>
   ),
@@ -30,7 +30,7 @@ vi.mock("@/components/InputPanel", () => ({
   InputPanel: () => (
     <section data-testid="input-panel">
       <textarea placeholder="clinical notes" />
-      <button>Analyze Notes</button>
+      <button>Extract Clinical Findings</button>
     </section>
   ),
 }));
@@ -63,11 +63,6 @@ vi.mock("@/components/ErrorBoundary", () => ({
 import ImnciDashboard from "@/app/page";
 
 describe("ImnciDashboard Page", () => {
-  it("renders the main heading", () => {
-    render(<ImnciDashboard />);
-    expect(screen.getByText(/Frontline Protocol Decision Support/)).toBeInTheDocument();
-  });
-
   it("renders the header with IMNCI-Safe branding", () => {
     render(<ImnciDashboard />);
     const matches = screen.getAllByText("IMNCI-Safe");
@@ -89,11 +84,6 @@ describe("ImnciDashboard Page", () => {
     expect(screen.getByTestId("referral-card")).toBeInTheDocument();
   });
 
-  it("renders the clinical decision support prototype badge", () => {
-    render(<ImnciDashboard />);
-    expect(screen.getByText("CLINICAL DECISION SUPPORT PROTOTYPE")).toBeInTheDocument();
-  });
-
   it("renders the footer disclaimer", () => {
     render(<ImnciDashboard />);
     expect(screen.getByText(/Clinical decision support only/)).toBeInTheDocument();
@@ -101,6 +91,6 @@ describe("ImnciDashboard Page", () => {
 
   it("renders the IMNCI protocol scope section", () => {
     render(<ImnciDashboard />);
-    expect(screen.getByText(/WHO \/ Ministry of Health/)).toBeInTheDocument();
+    expect(screen.getByText(/IMNCI Protocol Scope/)).toBeInTheDocument();
   });
 });

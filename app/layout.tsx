@@ -1,13 +1,13 @@
 import React from "react";
 import type { Metadata } from "next";
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { Inter, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
-  axes: ["opsz"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 const sourceSans = Source_Sans_3({
@@ -18,9 +18,9 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "IMNCI-Safe — Protocol-Grounded Childhood Illness Classification",
+  title: "IMNCI-Safe — AI-assisted IMNCI Assessment",
   description:
-    "Community health workers paste clinical notes. AI extracts the facts. A deterministic rules engine classifies against the Government of India IMNCI protocol. A human confirms every result.",
+    "AI extracts clinical facts from multilingual notes. A human verifies. Deterministic IMNCI protocol rules decide the classification.",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${sourceSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${sourceSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
