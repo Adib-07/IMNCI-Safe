@@ -51,9 +51,6 @@ const nextConfig: NextConfig = {
     "127.0.0.1:3000",
   ],
   async headers() {
-    if (process.env.NODE_ENV !== "production") {
-      return [];
-    }
     return [
       {
         source: "/(.*)",

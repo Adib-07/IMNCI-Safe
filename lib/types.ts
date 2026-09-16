@@ -54,9 +54,6 @@ export interface DangerSigns {
   vomits_everything?: boolean | UnknownValue;
   has_convulsions?: boolean | UnknownValue;
   lethargic_or_unconscious?: boolean | UnknownValue;
-  convulsions?: boolean | UnknownValue;
-  unable_to_drink?: boolean | UnknownValue;
-  vomiting_everything?: boolean | UnknownValue;
 }
 
 export interface ExtractedFacts {
@@ -113,7 +110,12 @@ export interface MissingFieldRequirement {
 
 export interface ProtocolResult {
   status: RuleEvaluationStatus;
+  /** Human-readable classification name (e.g. "PNEUMONIA: OUTPATIENT PATHWAY"). */
   classification_name: string;
+  /** Structured classification label: color name for classified results, null for refusal/incomplete. */
+  classification: "PINK" | "YELLOW" | "GREEN" | null;
+  /** Structured reason explaining WHY this classification was given or refused. */
+  reason: string;
   urgentReferral?: boolean;
   triage_color: TriageColor;
   matchedRule?: string | null;

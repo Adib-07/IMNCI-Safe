@@ -8,6 +8,7 @@ import { VerificationPanel } from "@/components/VerificationPanel";
 import { ReferralCard } from "@/components/ReferralCard";
 import { ReferralHandoffModal } from "@/components/ReferralHandoffModal";
 import { TechnicalDrawer } from "@/components/TechnicalDrawer";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { evaluateImnciRules } from "@/lib/imnci-rules";
 import { GUIDED_DEMO_CASES, DemoCaseMeta } from "@/lib/fixtures";
 import { 
@@ -231,7 +232,8 @@ export default function ImnciDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0B1720] text-[#EAF7F5] flex flex-col font-sans selection:bg-[#2BB7A9] selection:text-[#0B1720]">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-[#0B1720] text-[#EAF7F5] flex flex-col font-sans selection:bg-[#2BB7A9] selection:text-[#0B1720]">
       {/* Header */}
       <Header
         onReset={handleReset}
@@ -497,5 +499,6 @@ export default function ImnciDashboard() {
         </div>
       </footer>
     </div>
+    </ErrorBoundary>
   );
 }

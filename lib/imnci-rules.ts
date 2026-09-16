@@ -7,14 +7,26 @@ import {
 /**
  * IMNCI Protocol Deterministic Rules Engine
  * Scope: Prototype Rule Subset based on Ministry of Health & Family Welfare / WHO-UNICEF IMNCI Guidelines.
- * 
+ *
+ * ARCHITECTURE BOUNDARY:
+ *   This engine is the ONLY component that may produce a triage classification.
+ *   The AI model (Gemini) must NEVER determine the final IMNCI classification.
+ *   Only deterministic TypeScript rules may produce: Pink, Yellow, Green, or AMBER (refusal).
+ *
  * Rules in this prototype subset:
  * - IMNCI-AGE-01: Age verification (2 months up to 59 months cohort gating)
+ * - IMNCI-AGE-CONFLICT: Contradictory age statements detected
  * - IMNCI-GDS-01: General Danger Signs assessment (Convulsions, Inability to feed, Vomiting everything, Lethargy)
  * - IMNCI-RESP-01: Severe chest indrawing / Stridor in calm child (Urgent referral)
  * - IMNCI-PNEU-01: Pneumonia - Age-dependent fast breathing threshold (>=50 for 2-11m, >=40 for 12-59m)
  * - IMNCI-NO-URGENT-01: No urgent referral trigger detected from complete supplied facts
- * - IMNCI-INCOMPLETE-01: Information missing - Classification blocked
+ * - IMNCI-INCOMPLETE-01: Information missing - Classification blocked (AMBER refusal)
+ *
+ * SAFETY INVARIANTS:
+ * - "unknown" is a first-class state. It is NEVER converted to false or normal.
+ * - Missing critical information → AMBER refusal. Never silently assume absent symptoms are negative.
+ * - For identical verified input, this engine always produces the same result (deterministic).
+ * - No AI calls, randomness, network calls, or external state inside evaluateImnciProtocol.
  */
 
 export const PROTOTYPE_RULE_SUBSET_NAME = "Indian IMNCI Chart Booklet (Prototype Subset)";
@@ -72,6 +84,8 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
       status: "NEEDS_CONFIRMATION",
       classification_status: "NEEDS_CONFIRMATION",
       classification_name: "CANNOT CLASSIFY SAFELY: Age Conflict",
+      classification: null,
+      reason: "Conflicting age statements detected. IMNCI thresholds depend strictly on age. Classification is refused until the correct age is confirmed.",
       urgentReferral: false,
       triage_color: "AMBER",
       matchedRule: "IMNCI-AGE-CONFLICT",
@@ -113,6 +127,8 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
         status: "OUT_OF_COHORT",
         classification_status: "OUT_OF_COHORT",
         classification_name: "OUT OF COHORT (2 - 59 MONTHS)",
+        classification: null,
+        reason: `Patient age (${facts.patient_age_months} months) is outside the 2 to 59 month IMNCI child protocol scope. This engine cannot classify patients outside the target cohort.`,
         urgentReferral: false,
         triage_color: "AMBER",
         matchedRule: "IMNCI-AGE-01",
@@ -284,6 +300,8 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
       status: "CLASSIFIED",
       classification_status: "CLASSIFIED",
       classification_name: "URGENT REFERRAL TRIGGER VERIFIED",
+      classification: "PINK",
+      reason: `Urgent referral triggered. ${isGds ? "General Danger Sign" : "Severe physical sign"} verified: ${activeUrgentFields.join(", ")}. Any confirmed danger sign or severe physical sign requires immediate pre-referral treatment and hospital referral.`,
       urgentReferral: true,
       triage_color: "PINK",
       matchedRule: ruleId,
@@ -319,6 +337,8 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
       status: "NEEDS_CONFIRMATION",
       classification_status: "NEEDS_CONFIRMATION",
       classification_name: "CANNOT CLASSIFY SAFELY YET",
+      classification: null,
+      reason: `Incomplete data: ${missingFields.length} critical clinical item(s) are unconfirmed (${missingFields.map((m) => m.field).join(", ")}). IMNCI protocol strictly prohibits assuming absent symptoms are negative. Classification is refused until all required fields are verified.`,
       urgentReferral: false,
       triage_color: "AMBER",
       matchedRule: "IMNCI-INCOMPLETE-01",
@@ -347,6 +367,8 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
       status: "CLASSIFIED",
       classification_status: "CLASSIFIED",
       classification_name: "PNEUMONIA: OUTPATIENT PATHWAY",
+      classification: "YELLOW",
+      reason: `Fast breathing verified: counted RR ${facts.respiratory_rate} bpm meets or exceeds the age-specific threshold of ${threshold} bpm for age ${facts.patient_age_months} months. Combined with cough/difficult breathing, this indicates pneumonia requiring outpatient antibiotic treatment.`,
       urgentReferral: false,
       triage_color: "YELLOW",
       matchedRule: "IMNCI-PNEU-01",
@@ -377,6 +399,8 @@ export function evaluateImnciProtocol(assessment: ImnciAssessment): ProtocolResu
     status: "CLASSIFIED",
     classification_status: "CLASSIFIED",
     classification_name: "NO URGENT TRIGGER DETECTED FROM SUPPLIED FACTS",
+    classification: "GREEN",
+    reason: "All general danger signs negative. No severe chest indrawing or stridor. Respiratory rate within normal limits for age cohort (or no cough reported). No urgent referral criteria met from the supplied data.",
     urgentReferral: false,
     triage_color: "GREEN",
     matchedRule: "IMNCI-NO-URGENT-01",

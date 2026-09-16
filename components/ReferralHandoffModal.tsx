@@ -62,9 +62,9 @@ Primary Classification: ${result.classification_name}
 - Chest Indrawing: ${assessment?.chest_indrawing === true ? "PRESENT" : assessment?.chest_indrawing === false ? "Absent" : "Unknown"}
 - Stridor in Calm State: ${assessment?.stridor === true ? "PRESENT" : assessment?.stridor === false ? "Absent" : "Unknown"}
 - Danger Signs:
-  * Convulsions: ${assessment?.danger_signs?.convulsions ? "YES" : "No"}
-  * Unable to drink/breastfeed: ${assessment?.danger_signs?.unable_to_drink ? "YES" : "No"}
-  * Vomiting everything: ${assessment?.danger_signs?.vomiting_everything ? "YES" : "No"}
+  * Convulsions: ${assessment?.danger_signs?.has_convulsions ? "YES" : "No"}
+  * Unable to drink/breastfeed: ${assessment?.danger_signs?.unable_to_drink_or_breastfeed ? "YES" : "No"}
+  * Vomiting everything: ${assessment?.danger_signs?.vomits_everything ? "YES" : "No"}
   * Lethargic or unconscious: ${assessment?.danger_signs?.lethargic_or_unconscious ? "YES" : "No"}
 
 [R] RECOMMENDATION & PRE-REFERRAL STABILIZATION:

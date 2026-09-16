@@ -108,7 +108,7 @@ export function VerificationPanel({
     options: { label: string; value: boolean | number | string }[];
   } | null = null;
 
-  if (assessment.danger_signs?.unable_to_drink === "unknown" || assessment.danger_signs?.unable_to_drink === null) {
+  if (assessment.danger_signs?.unable_to_drink_or_breastfeed === "unknown" || assessment.danger_signs?.unable_to_drink_or_breastfeed === null) {
     primaryNextQuestion = {
       title: "Can the child drink or breastfeed normally?",
       description: "Inability to drink or breastfeed is an IMNCI General Danger Sign requiring urgent hospital referral.",
@@ -132,7 +132,7 @@ export function VerificationPanel({
         { label: "Very fast (62 bpm)", value: 62 },
       ]
     };
-  } else if (assessment.danger_signs?.convulsions === "unknown" || assessment.danger_signs?.convulsions === null) {
+  } else if (assessment.danger_signs?.has_convulsions === "unknown" || assessment.danger_signs?.has_convulsions === null) {
     primaryNextQuestion = {
       title: "Did the child have convulsions or fits during this illness?",
       description: "Convulsions indicate central nervous system involvement or severe malaria.",
@@ -215,47 +215,47 @@ export function VerificationPanel({
     {
       key: "convulsions",
       label: "Convulsions (Seizures)",
-      valueDisplay: assessment.danger_signs?.convulsions === true ? "Present" : assessment.danger_signs?.convulsions === false ? "Absent" : "Unknown",
+      valueDisplay: assessment.danger_signs?.has_convulsions === true ? "Present" : assessment.danger_signs?.has_convulsions === false ? "Absent" : "Unknown",
       valueType: "three_way",
       quote: extraction.verbatim_quotes?.convulsions || "Caregiver history",
-      status: assessment.danger_signs?.convulsions === true ? "Danger Sign" : assessment.danger_signs?.convulsions === false ? "Absent" : "Unknown",
-      statusColor: assessment.danger_signs?.convulsions === true 
+      status: assessment.danger_signs?.has_convulsions === true ? "Danger Sign" : assessment.danger_signs?.has_convulsions === false ? "Absent" : "Unknown",
+      statusColor: assessment.danger_signs?.has_convulsions === true 
         ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.danger_signs?.convulsions === false 
+        : assessment.danger_signs?.has_convulsions === false 
         ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
         : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
       isDanger: true,
-      currentVal: assessment.danger_signs?.convulsions,
+      currentVal: assessment.danger_signs?.has_convulsions,
     },
     {
       key: "unable_to_drink",
       label: "Unable to drink / breastfeed",
-      valueDisplay: assessment.danger_signs?.unable_to_drink === true ? "Cannot drink" : assessment.danger_signs?.unable_to_drink === false ? "Drinking normally" : "Unknown",
+      valueDisplay: assessment.danger_signs?.unable_to_drink_or_breastfeed === true ? "Cannot drink" : assessment.danger_signs?.unable_to_drink_or_breastfeed === false ? "Drinking normally" : "Unknown",
       valueType: "three_way",
       quote: extraction.verbatim_quotes?.unable_to_drink || "Caregiver history",
-      status: assessment.danger_signs?.unable_to_drink === true ? "Danger Sign" : assessment.danger_signs?.unable_to_drink === false ? "Absent" : "Unknown",
-      statusColor: assessment.danger_signs?.unable_to_drink === true 
+      status: assessment.danger_signs?.unable_to_drink_or_breastfeed === true ? "Danger Sign" : assessment.danger_signs?.unable_to_drink_or_breastfeed === false ? "Absent" : "Unknown",
+      statusColor: assessment.danger_signs?.unable_to_drink_or_breastfeed === true 
         ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.danger_signs?.unable_to_drink === false 
+        : assessment.danger_signs?.unable_to_drink_or_breastfeed === false 
         ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
         : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
       isDanger: true,
-      currentVal: assessment.danger_signs?.unable_to_drink,
+      currentVal: assessment.danger_signs?.unable_to_drink_or_breastfeed,
     },
     {
       key: "vomiting_everything",
       label: "Vomits everything",
-      valueDisplay: assessment.danger_signs?.vomiting_everything === true ? "Present" : assessment.danger_signs?.vomiting_everything === false ? "Absent" : "Unknown",
+      valueDisplay: assessment.danger_signs?.vomits_everything === true ? "Present" : assessment.danger_signs?.vomits_everything === false ? "Absent" : "Unknown",
       valueType: "three_way",
       quote: extraction.verbatim_quotes?.vomiting_everything || "Caregiver history",
-      status: assessment.danger_signs?.vomiting_everything === true ? "Danger Sign" : assessment.danger_signs?.vomiting_everything === false ? "Absent" : "Unknown",
-      statusColor: assessment.danger_signs?.vomiting_everything === true 
+      status: assessment.danger_signs?.vomits_everything === true ? "Danger Sign" : assessment.danger_signs?.vomits_everything === false ? "Absent" : "Unknown",
+      statusColor: assessment.danger_signs?.vomits_everything === true 
         ? "bg-[rgba(231,93,93,0.15)] text-[#E75D5D]" 
-        : assessment.danger_signs?.vomiting_everything === false 
+        : assessment.danger_signs?.vomits_everything === false 
         ? "bg-[rgba(73,197,137,0.15)] text-[#49C589]" 
         : "bg-[rgba(242,184,75,0.15)] text-[#F2B84B]",
       isDanger: true,
-      currentVal: assessment.danger_signs?.vomiting_everything,
+      currentVal: assessment.danger_signs?.vomits_everything,
     },
     {
       key: "lethargic_or_unconscious",
@@ -409,14 +409,14 @@ export function VerificationPanel({
 
       {/* Compact Table: Field | Value | Source | Status */}
       <div className="border border-[rgba(160,220,216,0.16)] rounded-lg overflow-hidden bg-[#10232D]">
-        <table className="w-full text-left text-xs">
+        <table className="w-full text-left text-xs" role="table" aria-label="Extracted clinical findings">
           <thead>
             <tr className="bg-[#0B1720] border-b border-[rgba(160,220,216,0.16)] text-[#78979B] font-bold uppercase tracking-wider text-[10px]">
-              <th className="py-2.5 px-3">Field</th>
-              <th className="py-2.5 px-3">Value</th>
-              <th className="py-2.5 px-3 hidden md:table-cell">Source Quote</th>
-              <th className="py-2.5 px-3">Status</th>
-              <th className="py-2.5 px-3 text-right">Edit</th>
+              <th scope="col" className="py-2.5 px-3">Field</th>
+              <th scope="col" className="py-2.5 px-3">Value</th>
+              <th scope="col" className="py-2.5 px-3 hidden md:table-cell">Source Quote</th>
+              <th scope="col" className="py-2.5 px-3">Status</th>
+              <th scope="col" className="py-2.5 px-3 text-right">Edit</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[rgba(160,220,216,0.08)]">
@@ -428,61 +428,66 @@ export function VerificationPanel({
                 <td className="py-2.5 px-3 text-[#A8C3C5]">
                   {row.valueDisplay}
                 </td>
-                <td className="py-2.5 px-3 text-[#78979B] italic hidden md:table-cell max-w-[200px] truncate">
+                <td className="py-2.5 px-3 text-[#78979B] italic hidden md:table-cell max-w-[200px] truncate" title={row.quote}>
                   &ldquo;{row.quote}&rdquo;
                 </td>
                 <td className="py-2.5 px-3">
-                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${row.statusColor}`}>
+                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${row.statusColor}`} role="status">
                     {row.status}
                   </span>
                 </td>
                 <td className="py-2.5 px-3 text-right">
                   {row.valueType === "three_way" ? (
-                    <div className="inline-flex items-center rounded border border-[rgba(160,220,216,0.16)] overflow-hidden bg-[#0B1720] p-0.5">
+                    <fieldset className="inline-flex items-center rounded border border-[rgba(160,220,216,0.16)] overflow-hidden bg-[#0B1720] p-0.5" aria-label={`Edit ${row.label}`}>
+                      <legend className="sr-only">{row.label}</legend>
                       <button
                         type="button"
                         onClick={() => onUpdateField(row.key, true, row.isDanger)}
+                        aria-pressed={row.currentVal === true}
+                        aria-label={`${row.label}: Present`}
                         className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
                           row.currentVal === true
                             ? "bg-[#E75D5D] text-white"
                             : "text-[#78979B] hover:text-[#EAF7F5]"
                         }`}
-                        title="Mark Present"
                       >
                         Yes
                       </button>
                       <button
                         type="button"
                         onClick={() => onUpdateField(row.key, false, row.isDanger)}
+                        aria-pressed={row.currentVal === false}
+                        aria-label={`${row.label}: Absent`}
                         className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
                           row.currentVal === false
                             ? "bg-[#2BB7A9] text-[#0B1720]"
                             : "text-[#78979B] hover:text-[#EAF7F5]"
                         }`}
-                        title="Mark Absent"
                       >
                         No
                       </button>
                       <button
                         type="button"
                         onClick={() => onUpdateField(row.key, "unknown", row.isDanger)}
+                        aria-pressed={row.currentVal === "unknown" || row.currentVal === null}
+                        aria-label={`${row.label}: Unknown`}
                         className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
                           row.currentVal === "unknown" || row.currentVal === null
                             ? "bg-[#F2B84B] text-[#0B1720]"
                             : "text-[#78979B] hover:text-[#EAF7F5]"
                         }`}
-                        title="Mark Unknown"
                       >
                         ?
                       </button>
-                    </div>
+                    </fieldset>
                   ) : (
                     <input
                       type="number"
                       value={typeof row.currentVal === "number" ? row.currentVal : ""}
                       onChange={(e) => onUpdateField(row.key, e.target.value ? parseInt(e.target.value, 10) : null)}
                       placeholder="Enter"
-                      className="w-16 px-1.5 py-0.5 text-xs text-center font-mono bg-[#0B1720] border border-[rgba(160,220,216,0.2)] rounded text-[#EAF7F5] focus:border-[#2BB7A9] focus:outline-none"
+                      aria-label={`Enter ${row.label} value`}
+                      className="w-16 px-1.5 py-0.5 text-xs text-center font-mono bg-[#0B1720] border border-[rgba(160,220,216,0.2)] rounded text-[#EAF7F5] focus:border-[#2BB7A9] focus:outline-none focus:ring-1 focus:ring-[#2BB7A9]"
                     />
                   )}
                 </td>

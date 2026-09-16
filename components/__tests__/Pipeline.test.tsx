@@ -4,57 +4,44 @@ import React from "react";
 import { Pipeline } from "../Pipeline";
 
 describe("Pipeline Component", () => {
-  it("renders all six pipeline stages", () => {
+  it("renders all three workflow steps", () => {
     render(<Pipeline currentStage="idle" />);
-    expect(screen.getByText("Input")).toBeInTheDocument();
-    expect(screen.getByText("Extract")).toBeInTheDocument();
-    expect(screen.getByText("Check missing facts")).toBeInTheDocument();
-    expect(screen.getByText("Verify protocol")).toBeInTheDocument();
-    expect(screen.getByText("Confirm")).toBeInTheDocument();
-    expect(screen.getByText("Handoff")).toBeInTheDocument();
+    expect(screen.getByText("1. Assess")).toBeInTheDocument();
+    expect(screen.getByText("2. Review")).toBeInTheDocument();
+    expect(screen.getByText("3. Handoff")).toBeInTheDocument();
   });
 
-  it("renders stage sublabels", () => {
+  it("renders step sublabels", () => {
     render(<Pipeline currentStage="idle" />);
-    expect(screen.getByText("Paste notes")).toBeInTheDocument();
-    expect(screen.getByText("AI reads")).toBeInTheDocument();
-    expect(screen.getByText("Gating safety")).toBeInTheDocument();
-    expect(screen.getByText("Check rules")).toBeInTheDocument();
-    expect(screen.getByText("Human decides")).toBeInTheDocument();
-    expect(screen.getByText("Referral card")).toBeInTheDocument();
+    expect(screen.getByText(/Messy field input/)).toBeInTheDocument();
+    expect(screen.getByText(/Structured findings/)).toBeInTheDocument();
+    expect(screen.getByText(/Deterministic triage/)).toBeInTheDocument();
   });
 
-  it("highlights the active stage", () => {
-    render(<Pipeline currentStage="extract" />);
-    const extractStep = screen.getByText("Extract").closest("li");
-    expect(extractStep).toHaveClass("text-white");
-  });
-
-  it("marks completed stages with emerald color", () => {
-    render(<Pipeline currentStage="verify" />);
-    const inputStep = screen.getByText("Input").closest("li");
-    expect(inputStep).toHaveClass("text-emerald-400");
-  });
-
-  it("marks future stages with muted color", () => {
-    render(<Pipeline currentStage="input" />);
-    const confirmStep = screen.getByText("Confirm").closest("li");
-    expect(confirmStep).toHaveClass("text-slate-600");
+  it("highlights the active step", () => {
+    render(<Pipeline activeStep={2} />);
+    const reviewButton = screen.getByText("2. Review").closest("button");
+    expect(reviewButton).toHaveAttribute("aria-current", "step");
   });
 
   it("has proper accessibility label", () => {
     render(<Pipeline currentStage="idle" />);
-    expect(screen.getByLabelText("Classification pipeline")).toBeInTheDocument();
+    expect(screen.getByLabelText("Clinical workflow steps")).toBeInTheDocument();
   });
 
-  it("renders stage numbers in circles", () => {
+  it("renders deterministic gating badge", () => {
     render(<Pipeline currentStage="idle" />);
-    expect(screen.getByText("1")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("4")).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
-    expect(screen.getByText("6")).toBeInTheDocument();
+    expect(screen.getByText("Deterministic Gating Active")).toBeInTheDocument();
+  });
+
+  it("disables steps that cannot be navigated to", () => {
+    render(
+      <Pipeline 
+        activeStep={1} 
+        canNavigateToStep={(step) => step <= 1}
+      />
+    );
+    const reviewButton = screen.getByText("2. Review").closest("button");
+    expect(reviewButton).toBeDisabled();
   });
 });
-

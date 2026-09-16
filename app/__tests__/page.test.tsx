@@ -19,32 +19,44 @@ vi.mock("@/components/Header", () => ({
 }));
 
 vi.mock("@/components/Pipeline", () => ({
-  Pipeline: ({ currentStage }: { currentStage: string }) => (
-    <nav data-testid="pipeline" aria-label="Classification pipeline">
-      <span>Stage: {currentStage}</span>
+  Pipeline: ({ activeStep }: { activeStep: number }) => (
+    <nav data-testid="pipeline" aria-label="Clinical workflow steps">
+      <span>Step: {activeStep}</span>
     </nav>
   ),
 }));
 
 vi.mock("@/components/InputPanel", () => ({
-  InputPanel: (_props: Record<string, unknown>) => (
+  InputPanel: () => (
     <section data-testid="input-panel">
       <textarea placeholder="clinical notes" />
-      <button>Process Notes</button>
+      <button>Analyze Notes</button>
     </section>
   ),
 }));
 
 vi.mock("@/components/VerificationPanel", () => ({
-  VerificationPanel: (_props: Record<string, unknown>) => (
+  VerificationPanel: () => (
     <section data-testid="verification-panel">Verification Panel</section>
   ),
 }));
 
 vi.mock("@/components/ReferralCard", () => ({
-  ReferralCard: (_props: Record<string, unknown>) => (
+  ReferralCard: () => (
     <section data-testid="referral-card">Referral Card</section>
   ),
+}));
+
+vi.mock("@/components/ReferralHandoffModal", () => ({
+  ReferralHandoffModal: () => null,
+}));
+
+vi.mock("@/components/TechnicalDrawer", () => ({
+  TechnicalDrawer: () => null,
+}));
+
+vi.mock("@/components/ErrorBoundary", () => ({
+  ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Import the page component after mocks
@@ -53,7 +65,7 @@ import ImnciDashboard from "@/app/page";
 describe("ImnciDashboard Page", () => {
   it("renders the main heading", () => {
     render(<ImnciDashboard />);
-    expect(screen.getByText(/Every child assessed against the protocol/)).toBeInTheDocument();
+    expect(screen.getByText(/Frontline Protocol Decision Support/)).toBeInTheDocument();
   });
 
   it("renders the header with IMNCI-Safe branding", () => {
@@ -77,28 +89,18 @@ describe("ImnciDashboard Page", () => {
     expect(screen.getByTestId("referral-card")).toBeInTheDocument();
   });
 
-  it("renders the How It Works section", () => {
+  it("renders the clinical decision support prototype badge", () => {
     render(<ImnciDashboard />);
-    expect(screen.getByText("How IMNCI-Safe classifies a sick child")).toBeInTheDocument();
-  });
-
-  it("renders the Why Trustworthy section", () => {
-    render(<ImnciDashboard />);
-    expect(screen.getByText("Why health programs trust IMNCI-Safe")).toBeInTheDocument();
-  });
-
-  it("renders the triage color legend", () => {
-    render(<ImnciDashboard />);
-    expect(screen.getByText("IMNCI TRIAGE COLOUR CODING")).toBeInTheDocument();
+    expect(screen.getByText("CLINICAL DECISION SUPPORT PROTOTYPE")).toBeInTheDocument();
   });
 
   it("renders the footer disclaimer", () => {
     render(<ImnciDashboard />);
-    expect(screen.getByText("Not a replacement for clinical judgment.")).toBeInTheDocument();
+    expect(screen.getByText(/Clinical decision support only/)).toBeInTheDocument();
   });
 
-  it("renders the government protocol badge", () => {
+  it("renders the IMNCI protocol scope section", () => {
     render(<ImnciDashboard />);
-    expect(screen.getByText("GOVERNMENT OF INDIA IMNCI PROTOCOL")).toBeInTheDocument();
+    expect(screen.getByText(/WHO \/ Ministry of Health/)).toBeInTheDocument();
   });
 });

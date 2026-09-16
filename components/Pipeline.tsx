@@ -40,10 +40,10 @@ export function Pipeline({
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-[#EAF7F5] uppercase tracking-wider">
-            Frontline Protocol Workflow
+            Safety Pipeline
           </span>
           <span className="text-[11px] text-[#78979B] hidden md:inline">
-            &bull; Step-by-step decision support with deterministic gating
+            &bull; Input &rarr; AI Extraction &rarr; Human Verification &rarr; Rule Engine &rarr; Result
           </span>
         </div>
         <div className="text-[11px] font-medium text-[#73DED0] bg-[#15313A] px-2 py-0.5 rounded border border-[rgba(160,220,216,0.2)]">
@@ -51,20 +51,22 @@ export function Pipeline({
         </div>
       </div>
 
-      <nav aria-label="Workflow Steps" className="w-full">
-        <ol className="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <nav aria-label="Clinical workflow steps" className="w-full">
+        <ol className="grid grid-cols-1 md:grid-cols-3 gap-2" role="list">
           {THREE_AREAS.map((item) => {
             const isCurrent = activeStep === item.step;
             const canNav = canNavigateToStep ? canNavigateToStep(item.step as 1 | 2 | 3) : true;
             const Icon = item.icon;
 
             return (
-              <li key={item.step}>
+              <li key={item.step} role="listitem">
                 <button
                   type="button"
                   onClick={() => onSelectStep && canNav && onSelectStep(item.step as 1 | 2 | 3)}
                   disabled={!canNav}
-                  className={`w-full text-left p-2.5 rounded-lg border transition-all flex items-center gap-3 ${
+                  aria-current={isCurrent ? "step" : undefined}
+                  aria-label={`Step ${item.step}: ${item.label.replace(/^\d+\.\s*/, "")} - ${item.sublabel}`}
+                  className={`w-full text-left p-2.5 rounded-lg border transition-all flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2BB7A9] focus-visible:ring-offset-1 focus-visible:ring-offset-[#10232D] ${
                     isCurrent
                       ? "bg-[#15313A] border-[#2BB7A9] shadow-sm"
                       : canNav
@@ -78,6 +80,7 @@ export function Pipeline({
                         ? "bg-[#2BB7A9] text-[#0B1720]"
                         : "bg-[#15313A] text-[#73DED0] border border-[rgba(160,220,216,0.2)]"
                     }`}
+                    aria-hidden="true"
                   >
                     <Icon className="w-4 h-4" />
                   </div>
@@ -99,5 +102,3 @@ export function Pipeline({
     </div>
   );
 }
-
-

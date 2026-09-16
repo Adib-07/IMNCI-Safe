@@ -81,9 +81,9 @@ IMNCI SBAR REFERRAL HANDOFF NOTE
 - Chest Indrawing: ${assessment?.chest_indrawing === true ? "PRESENT" : assessment?.chest_indrawing === false ? "Absent" : "Unknown"}
 - Stridor in Calm State: ${assessment?.stridor === true ? "PRESENT" : assessment?.stridor === false ? "Absent" : "Unknown"}
 - Danger Signs:
-  * Unable to drink/breastfeed: ${assessment?.danger_signs?.unable_to_drink === true ? "YES" : "No"}
-  * Vomits everything: ${assessment?.danger_signs?.vomiting_everything === true ? "YES" : "No"}
-  * Convulsions: ${assessment?.danger_signs?.convulsions === true ? "YES" : "No"}
+  * Unable to drink/breastfeed: ${assessment?.danger_signs?.unable_to_drink_or_breastfeed === true ? "YES" : "No"}
+  * Vomits everything: ${assessment?.danger_signs?.vomits_everything === true ? "YES" : "No"}
+  * Convulsions: ${assessment?.danger_signs?.has_convulsions === true ? "YES" : "No"}
   * Lethargic / Unconscious: ${assessment?.danger_signs?.lethargic_or_unconscious === true ? "YES" : "No"}
 
 [R] RECOMMENDATION & PRE-REFERRAL ACTIONS:

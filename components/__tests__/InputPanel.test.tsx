@@ -21,14 +21,9 @@ describe("InputPanel Component", () => {
     expect(screen.getByPlaceholderText(/Baccha 18 months/)).toBeInTheDocument();
   });
 
-  it("renders the Process Notes button", () => {
+  it("renders the Analyze Notes button", () => {
     render(<InputPanel {...defaultProps} />);
-    expect(screen.getByText("Process Notes")).toBeInTheDocument();
-  });
-
-  it("renders the live API button", () => {
-    render(<InputPanel {...defaultProps} />);
-    expect(screen.getByText("Or run with live API")).toBeInTheDocument();
+    expect(screen.getByText("Analyze Notes")).toBeInTheDocument();
   });
 
   it("renders quick fill buttons", () => {
@@ -44,10 +39,10 @@ describe("InputPanel Component", () => {
     expect(screen.getByText(/High Risk/)).toBeInTheDocument();
   });
 
-  it("calls onProcessNotes when Process Notes is clicked", () => {
+  it("calls onProcessNotes when Analyze Notes is clicked", () => {
     const onProcessNotes = vi.fn();
     render(<InputPanel {...defaultProps} inputText="18 month old child with cough" onProcessNotes={onProcessNotes} />);
-    fireEvent.click(screen.getByText("Process Notes"));
+    fireEvent.click(screen.getByText("Analyze Notes"));
     expect(onProcessNotes).toHaveBeenCalledTimes(1);
   });
 

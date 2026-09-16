@@ -248,12 +248,6 @@ export function InputPanel({
     }
   };
 
-  const handleLiveApiClick = () => {
-    if (onExtract) {
-      onExtract(inputText, undefined, photoPreview, activeTab);
-    }
-  };
-
   const handleSelectCase = (caseId: string) => {
     const found = GUIDED_DEMO_CASES.find(c => c.id === caseId || c.id.includes(caseId));
     if (found && onSelectDemoCase) {
@@ -652,39 +646,29 @@ export function InputPanel({
           Extraction identifies clinical facts. Final evaluation is governed by deterministic rules.
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={handleLiveApiClick}
-            disabled={busy || isDisabled || (!inputText.trim() && !photoPreview)}
-            className="text-xs font-semibold text-[#A8C3C5] hover:text-[#EAF7F5] bg-[#10232D] hover:bg-[#1B3B43] px-3 py-2.5 rounded-lg border border-[rgba(160,220,216,0.16)] transition-colors"
-          >
-            Or run with live API
-          </button>
-
-          <button
-            type="button"
-            onClick={handleProcessClick}
-            disabled={busy || isDisabled || (!inputText.trim() && !photoPreview)}
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all shadow-md ${
-              busy || isDisabled || (!inputText.trim() && !photoPreview)
-                ? "bg-[#10232D] border border-[rgba(160,220,216,0.1)] text-[#78979B] cursor-not-allowed"
-                : "bg-[#2BB7A9] hover:bg-[#73DED0] text-[#0B1720] active:scale-[0.98]"
-            }`}
-          >
-            {busy ? (
-              <>
-                <div className="w-3.5 h-3.5 border-2 border-[#0B1720]/30 border-t-[#0B1720] rounded-full animate-spin" />
-                <span>Processing...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Review case (Process Notes)</span>
-              </>
-            )}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleProcessClick}
+          disabled={busy || isDisabled || (!inputText.trim() && !photoPreview)}
+          aria-label={busy ? "Processing clinical notes" : "Analyze clinical notes with AI extraction"}
+          className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2BB7A9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#15313A] ${
+            busy || isDisabled || (!inputText.trim() && !photoPreview)
+              ? "bg-[#10232D] border border-[rgba(160,220,216,0.1)] text-[#78979B] cursor-not-allowed"
+              : "bg-[#2BB7A9] hover:bg-[#73DED0] text-[#0B1720] active:scale-[0.98]"
+          }`}
+        >
+          {busy ? (
+            <>
+              <div className="w-3.5 h-3.5 border-2 border-[#0B1720]/30 border-t-[#0B1720] rounded-full animate-spin" aria-hidden="true" />
+              <span>Processing...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Analyze Notes</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
