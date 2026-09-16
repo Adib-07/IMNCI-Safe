@@ -41,7 +41,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Next.js 16.3 regression: Vercel's adapter + standalone output triggers
+  // ENOENT on .next/next-server.js.nft.json (github.com/vercel/next.js/issues/96646).
+  // Vercel sets VERCEL=1 at build time; standalone output is unused on Vercel
+  // but required for Docker/self-hosted deployments.
+  output: process.env.VERCEL ? undefined : "standalone",
   reactStrictMode: true,
   allowedDevOrigins: [
     "*.run.app",

@@ -1,16 +1,18 @@
 # IMNCI-Safe
 
-A deterministic clinical decision-support prototype that transforms unstructured multilingual health worker notes into structured IMNCI triage assessments — without letting the AI make the classification.
+An AI-assisted IMNCI clinical assessment prototype that converts unstructured child-health notes into structured facts, supports human verification, and applies deterministic protocol rules for transparent classification.
 
-## Problem
+## Overview
 
 Frontline health workers screening sick children rely on the IMNCI (Integrated Management of Neonatal and Childhood Illness) chart booklet from India's National Health Mission. The protocol requires evaluating 4 general danger signs, measuring respiratory rate against age-specific thresholds, and checking for chest indrawing and stridor — all under time pressure with paper-based workflows.
 
 Current AI chatbot approaches attempt to both extract and classify clinical data in a single step. This creates a safety risk: the LLM may hallucinate classifications, silently convert missing information into negative findings, or apply incorrect age-specific thresholds.
 
-## Solution
+IMNCI-Safe addresses this by separating extraction from classification into a strict three-layer architecture.
 
-IMNCI-Safe separates extraction from classification into a strict three-layer architecture:
+## Core Principle
+
+**AI extracts. Human verifies. Rules decide.**
 
 | Layer | Role | Never does |
 |-------|------|------------|
@@ -20,7 +22,13 @@ IMNCI-Safe separates extraction from classification into a strict three-layer ar
 
 The rules engine is the only component that produces a triage classification. It is a pure function: same input always yields same output.
 
-## Safety Principle
+```
+Unstructured note → AI extraction → Structured facts → Human verification → Deterministic IMNCI rules → Classification or AMBER refusal
+```
+
+## Safety Model
+
+The system enforces a strict safety invariant:
 
 **`UNKNOWN` is never converted to `false`.**
 
@@ -32,6 +40,21 @@ Missing critical information → Protocol-safe refusal (AMBER)
 ```
 
 This is the core invariant. The system will actively block referral card generation rather than produce a classification from incomplete data.
+
+**Key safety properties:**
+
+- AI is not the final decision maker
+- Missing critical information blocks classification
+- Deterministic rules are authoritative
+- Outputs are auditable with evidence trails
+- Human verification is part of the workflow
+
+**Limitations:**
+
+- This is a software prototype, not a medical device
+- It implements a subset of the full IMNCI protocol (sick child 2–59 months: general danger signs + cough/breathing module only)
+- It does not cover fever, diarrhea, or ear/throat assessments
+- A qualified health worker must always review and confirm
 
 ## How It Works
 
@@ -55,7 +78,7 @@ Deterministic IMNCI Rules Engine (lib/imnci-rules.ts)
 Referral Card with auditable evidence trail
 ```
 
-## Key Features
+## Features
 
 - **Structured extraction** — Gemini parses multilingual clinical notes into typed JSON with verbatim evidence quotes
 - **Deterministic classification** — Pure TypeScript rules engine, no AI calls in the classification path
@@ -97,19 +120,15 @@ lib/
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|------------|
+| Layer | Technology |
+|-------|------------|
 | Framework | Next.js 16 (App Router, Turbopack) |
 | Language | TypeScript (strict mode) |
 | UI | React 19, Tailwind CSS 4 |
 | AI | Google Gemini API (`gemini-2.5-flash`) via `@google/genai` |
 | Testing | Vitest, Testing Library, jsdom |
 | Linting | ESLint 9 with `eslint-config-next` |
-| Deployment | `output: "standalone"` (Docker/Fly.io/Railway compatible) |
-
-## Screenshots
-
-> Screenshots to be added. The application runs at `http://localhost:3000` after `npm run dev`.
+| Deployment | Vercel, or `output: "standalone"` (Docker/Fly.io/Railway compatible) |
 
 ## Getting Started
 
@@ -187,16 +206,6 @@ Test coverage spans:
 ├── SECURITY.md           # Security policy
 └── .env.example          # Environment variable template
 ```
-
-## Safety / Limitations
-
-**This is a prototype, not a medical device.**
-
-- The deterministic rules engine implements a **subset** of the full IMNCI protocol (sick child 2–59 months: general danger signs + cough/breathing module only). It does not cover fever, diarrhea, or ear/throat assessments.
-- The system does not store patient data. All processing is in-memory with no persistence.
-- Classifications are decision-support outputs, not diagnoses. A qualified health worker must always review and confirm.
-- The Gemini extraction layer may produce imperfect extractions from very noisy input. The human verification step exists specifically to catch and correct these.
-- Fast breathing thresholds follow NHM India guidelines (≥50 bpm for 2–11 months, ≥40 bpm for 12–59 months). These are not universal — other countries may use different thresholds.
 
 ## Documentation
 
