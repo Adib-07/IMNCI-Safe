@@ -183,24 +183,58 @@ export function InputPanel({
     >
       {/* Section Header */}
       <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]" />
-          <h2 className="type-h3 text-[var(--color-text)]">
-            Clinical Observations
-          </h2>
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-brand)]" />
+            <h2 className="type-h3 text-[var(--color-text)]">
+              Clinical Observation Capture
+            </h2>
+          </div>
+          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[var(--color-brand)]/10 text-[var(--color-brand-light)] border border-[var(--color-brand)]/20">
+            IMNCI 2–59 Months
+          </span>
         </div>
         <p className="type-small text-[var(--color-text-secondary)]">
-          Enter observations in Hindi, English, or mixed language exactly as spoken by the caregiver.
+          Describe what the caregiver reports or what was observed during initial triage.
         </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-text-muted)] bg-[var(--color-surface)] px-3 py-1.5 rounded-lg border border-[var(--color-border)]">
+          <span className="font-semibold text-[var(--color-text-secondary)]">Language Support:</span>
+          <span>English</span>
+          <span className="text-[var(--color-border)]">&bull;</span>
+          <span>Hindi (हिंदी)</span>
+          <span className="text-[var(--color-border)]">&bull;</span>
+          <span>Code-mixed triage notation (e.g. &ldquo;Bacche ko saans tez hai…&rdquo;)</span>
+        </div>
+      </div>
+
+      {/* Architectural Separation Banner */}
+      <div className="grid grid-cols-3 gap-2 py-2 px-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-center text-[10px]">
+        <div className="flex flex-col items-center">
+          <span className="font-bold text-[var(--color-brand-light)]">1. RAW OBSERVATION</span>
+          <span className="text-[var(--color-text-muted)]">Caregiver verbatim words</span>
+        </div>
+        <div className="flex flex-col items-center border-x border-[var(--color-border)] px-1">
+          <span className="font-bold text-[var(--color-text-secondary)]">2. AI EXTRACTION</span>
+          <span className="text-[var(--color-text-muted)]">Verbatim quote mapping</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="font-bold text-[var(--color-green)]">3. HUMAN VERIFIED</span>
+          <span className="text-[var(--color-text-muted)]">Clinician authorized</span>
+        </div>
       </div>
 
       {/* Demo Cases */}
-      <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-3">
-        <div className="flex items-center gap-1.5 mb-2.5">
-          <Sparkles className="w-3.5 h-3.5 text-[var(--color-brand)]" />
-          <span className="type-caption text-[var(--color-text)]">Quick Demo Cases</span>
+      <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-3.5">
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[var(--color-brand-light)]" />
+            <span className="type-caption text-[var(--color-text)]">Guided Synthetic Scenarios</span>
+          </div>
+          <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+            SYNTHETIC DEMO DATA &bull; NOT A REAL PATIENT
+          </span>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {GUIDED_DEMO_CASES.map((demo) => {
             const isSelected = selectedDemoCaseId === demo.id;
             return (
@@ -208,32 +242,39 @@ export function InputPanel({
                 key={demo.id}
                 type="button"
                 onClick={() => onSelectDemoCase ? onSelectDemoCase(demo) : undefined}
-                className={`p-2.5 text-left rounded-md border transition-all ${
+                className={`p-2.5 text-left rounded-lg border transition-all ${
                   isSelected
-                    ? "bg-[var(--color-brand)]/10 border-[var(--color-brand)]/40"
+                    ? "bg-[var(--color-brand)]/15 border-[var(--color-brand)] shadow-sm"
                     : "bg-[var(--color-card)] border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-elevated)]"
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="type-micro text-[var(--color-text)]">{demo.label}</span>
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                    demo.tag === "Urgent" ? "bg-[var(--color-pink-bg)] text-[var(--color-pink)] border-[var(--color-pink-border)]" :
-                    demo.tag === "Incomplete" ? "bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] border-[var(--color-yellow-border)]" :
+                <div className="flex items-center justify-between gap-1 mb-1.5">
+                  <span className="text-xs font-bold text-[var(--color-text)] leading-tight">{demo.label}</span>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                    demo.tag === "General danger sign" || demo.tag === "Urgent" ? "bg-[var(--color-pink-bg)] text-[var(--color-pink)] border-[var(--color-pink-border)]" :
+                    demo.tag === "Gating safety" || demo.tag === "Incomplete" ? "bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] border-[var(--color-yellow-border)]" :
                     "bg-[var(--color-green-bg)] text-[var(--color-green)] border-[var(--color-green-border)]"
                   }`}>
                     {demo.tag}
                   </span>
                 </div>
-                <p className="text-[10px] text-[var(--color-text-muted)] line-clamp-2 leading-snug">
+                <p className="text-[11px] text-[var(--color-text-muted)] line-clamp-2 leading-relaxed">
                   {demo.description}
                 </p>
               </button>
             );
           })}
         </div>
-        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)]">
-          <Info className="w-3 h-3 shrink-0" />
-          <span>Synthetic data only — not from real patients.</span>
+        <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)]">
+          <div className="flex items-center gap-1.5">
+            <Info className="w-3 h-3 text-[var(--color-brand-light)] shrink-0" />
+            <span>Click any scenario to prefill observations and evaluate protocol decision pathways.</span>
+          </div>
+          {selectedDemoCaseId && (
+            <span className="text-[var(--color-brand-light)] font-medium shrink-0">
+              Scenario active
+            </span>
+          )}
         </div>
       </div>
 
@@ -376,6 +417,14 @@ export function InputPanel({
           rows={5}
           className="w-full text-sm text-[var(--color-text)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-3 focus:border-[var(--color-brand)] focus:ring-1 focus:ring-[var(--color-border-focus)] placeholder-[var(--color-text-muted)] transition-colors resize-y min-h-[120px]"
         />
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--color-text-muted)] px-1">
+          <span className="font-semibold text-[var(--color-text-secondary)]">Required Checklist:</span>
+          <span>&bull; Exact Age (months)</span>
+          <span>&bull; Counted Breaths/min (RR)</span>
+          <span>&bull; Chest Indrawing</span>
+          <span>&bull; Stridor</span>
+          <span>&bull; General Danger Signs</span>
+        </div>
       </div>
 
       {/* Error */}

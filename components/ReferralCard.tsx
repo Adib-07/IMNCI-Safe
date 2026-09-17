@@ -169,47 +169,65 @@ Action: ${result.treatment_instruction}
 
       {/* PINK — Urgent */}
       {isUrgent && (
-        <div className="bg-[var(--color-pink-bg)] border border-[var(--color-pink-border)] rounded-lg p-4 animate-fade-in">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[var(--color-pink)] flex items-center justify-center shrink-0 shadow-md">
-              <ShieldAlert className="w-5 h-5 text-white" />
+        <div className="bg-[var(--color-pink-bg)] border-2 border-[var(--color-pink-border)] rounded-xl p-4 sm:p-5 animate-fade-in shadow-xs">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-lg bg-[var(--color-pink)] flex items-center justify-center shrink-0 shadow-sm text-white">
+              <ShieldAlert className="w-5 h-5" />
             </div>
-            <div>
-              <span className="type-label text-[var(--color-pink)]">Urgent Referral — Pink</span>
-              <h3 className="type-h2 text-[var(--color-text)] mt-1">{result.classification_name}</h3>
-              <p className="type-small text-[var(--color-pink)] mt-1 font-medium">
-                {result.rule_description || "Danger sign or severe physical sign verified."}
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--color-pink)] text-white">
+                  Urgent Referral — Pink
+                </span>
+                <span className="text-[11px] font-bold text-[var(--color-pink)]">
+                  Immediate Hospital Transfer
+                </span>
+              </div>
+              <h3 className="type-h2 text-[var(--color-text)] mt-1.5 font-black tracking-tight">
+                {result.classification_name}
+              </h3>
+              <p className="type-small text-[var(--color-pink)] mt-1 font-semibold">
+                {result.rule_description || result.reason || "General danger sign or severe physical sign verified."}
               </p>
             </div>
           </div>
-          {result.treatment_instruction && (
-            <div className="mt-3 p-3 bg-[var(--color-card)] border border-[var(--color-border)] rounded-md text-xs">
-              <span className="font-bold text-[var(--color-pink)]">Action: </span>
-              <span className="text-[var(--color-text)] font-medium">{result.treatment_instruction}</span>
-            </div>
-          )}
-          <div className="mt-3 p-3 bg-[var(--color-card)] border border-[var(--color-border)] rounded-md text-xs">
-            <div className="font-bold text-[var(--color-pink)] mb-2 flex items-center justify-between">
-              <span>Pre-Referral Stabilization</span>
-              <span className="text-[var(--color-text-muted)] font-normal text-[10px]">Check when done</span>
-            </div>
-            <div className="space-y-1.5">
-              {([
-                { key: "antibiotic" as const, label: "First dose antibiotic administered" },
-                { key: "warmth" as const, label: "Hypothermia protection (keep warm)" },
-                { key: "breastfeeding" as const, label: "Continue breastfeeding / fluids" },
-                { key: "transport" as const, label: "Transport to FRU arranged" },
-              ]).map(({ key, label }) => (
-                <label key={key} className="flex items-start gap-2.5 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={preReferralChecklist[key]}
-                    onChange={() => toggleChecklistItem(key)}
-                    className="mt-0.5 rounded"
-                  />
-                  <span className="text-[var(--color-text-secondary)] leading-tight">{label}</span>
-                </label>
-              ))}
+
+          {/* Clinical Directives */}
+          <div className="mt-4 grid grid-cols-1 gap-2.5">
+            {result.treatment_instruction && (
+              <div className="p-3 bg-[var(--color-card)] border border-[var(--color-pink-border)] rounded-lg text-xs">
+                <span className="font-bold text-[var(--color-pink)] uppercase tracking-wider text-[10px] block mb-0.5">
+                  Protocol Action Directive:
+                </span>
+                <span className="text-[var(--color-text)] font-bold text-sm block">
+                  {result.treatment_instruction}
+                </span>
+              </div>
+            )}
+
+            <div className="p-3.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg text-xs">
+              <div className="font-bold text-[var(--color-pink)] mb-2 flex items-center justify-between">
+                <span className="uppercase tracking-wider text-[10px]">Pre-Referral Stabilization Checklist</span>
+                <span className="text-[var(--color-text-muted)] font-normal text-[10px]">Verify prior to transit</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {([
+                  { key: "antibiotic" as const, label: "First dose appropriate antibiotic given" },
+                  { key: "warmth" as const, label: "Hypothermia prevention (skin-to-skin / wrap warm)" },
+                  { key: "breastfeeding" as const, label: "Continue frequent fluids / feeding if able to swallow" },
+                  { key: "transport" as const, label: "Urgent transport to First Referral Unit arranged" },
+                ]).map(({ key, label }) => (
+                  <label key={key} className="flex items-start gap-2.5 p-2 rounded bg-[var(--color-surface)] border border-[var(--color-border)] cursor-pointer select-none hover:border-[var(--color-brand)] transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={preReferralChecklist[key]}
+                      onChange={() => toggleChecklistItem(key)}
+                      className="mt-0.5 rounded text-[var(--color-brand)] focus:ring-[var(--color-brand)]"
+                    />
+                    <span className="text-[var(--color-text)] text-[11px] leading-tight font-medium">{label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </div>

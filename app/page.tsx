@@ -9,9 +9,10 @@ import { ReferralCard } from "@/components/ReferralCard";
 import { ReferralHandoffModal } from "@/components/ReferralHandoffModal";
 import { TechnicalDrawer } from "@/components/TechnicalDrawer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ClinicalCaseHeader } from "@/components/ClinicalCaseHeader";
 import { evaluateImnciRules } from "@/lib/imnci-rules";
 import { GUIDED_DEMO_CASES, DemoCaseMeta } from "@/lib/fixtures";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, AlertCircle } from "lucide-react";
 import type {
   ImnciAssessment,
   GeminiExtractionResponse,
@@ -20,6 +21,7 @@ import type {
 
 export default function ImnciDashboard() {
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+  const [caseId] = useState(() => `CASE-DEMO-${Math.floor(1000 + Math.random() * 9000)}`);
   const [inputText, setInputText] = useState("");
   const [selectedDemoCaseId, setSelectedDemoCaseId] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -34,6 +36,7 @@ export default function ImnciDashboard() {
   const [pipelineStage, setPipelineStage] = useState<PipelineStageKey | "idle">("idle");
   const [isTechnicalViewOpen, setIsTechnicalViewOpen] = useState(false);
   const [isHandoffModalOpen, setIsHandoffModalOpen] = useState(false);
+  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
 
   const canNavigateToStep = useCallback((step: 1 | 2 | 3) => {
     if (step === 1) return true;
@@ -157,7 +160,7 @@ export default function ImnciDashboard() {
     setIsConfirmed((prev) => !prev);
   }, []);
 
-  const handleReset = useCallback(() => {
+  const performReset = useCallback(() => {
     setInputText("");
     setSelectedDemoCaseId(null);
     setExtraction(null);
@@ -169,7 +172,16 @@ export default function ImnciDashboard() {
     setPipelineStage("idle");
     setHasUserModified(false);
     setActiveStep(1);
+    setShowResetConfirmModal(false);
   }, []);
+
+  const handleReset = useCallback(() => {
+    if (assessment || inputText.trim().length > 0) {
+      setShowResetConfirmModal(true);
+    } else {
+      performReset();
+    }
+  }, [assessment, inputText, performReset]);
 
   return (
     <ErrorBoundary>
@@ -190,7 +202,17 @@ export default function ImnciDashboard() {
           canNavigateToStep={canNavigateToStep}
         />
 
-        <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+        <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col gap-5">
+          {/* Clinical Encounter Case Header */}
+          <ClinicalCaseHeader
+            caseId={caseId}
+            assessment={assessment}
+            result={protocolResult}
+            activeStep={activeStep}
+            hasUserModified={hasUserModified}
+            isConfirmed={isConfirmed}
+          />
+
           {/* Workflow Pipeline */}
           <Pipeline
             currentStage={pipelineStage}
@@ -202,7 +224,7 @@ export default function ImnciDashboard() {
           {/* Main 3-Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
             {/* Step 1: Input */}
-            <div className={`flex flex-col gap-4 ${activeStep === 1 ? "ring-1 ring-[var(--color-brand)]/30 rounded-xl" : ""}`}>
+            <div className={`flex flex-col gap-4 ${activeStep === 1 ? "ring-2 ring-[var(--color-brand)]/40 rounded-xl" : ""}`}>
               <InputPanel
                 inputText={inputText}
                 onInputChange={(text) => {
@@ -219,7 +241,7 @@ export default function ImnciDashboard() {
             </div>
 
             {/* Step 2: Verify */}
-            <div className={`flex flex-col gap-4 ${activeStep === 2 ? "ring-1 ring-[var(--color-brand)]/30 rounded-xl" : ""}`}>
+            <div className={`flex flex-col gap-4 ${activeStep === 2 ? "ring-2 ring-[var(--color-brand)]/40 rounded-xl" : ""}`}>
               <VerificationPanel
                 extraction={extraction}
                 assessment={assessment}
@@ -232,7 +254,7 @@ export default function ImnciDashboard() {
             </div>
 
             {/* Step 3: Result */}
-            <div className={`flex flex-col gap-4 ${activeStep === 3 ? "ring-1 ring-[var(--color-brand)]/30 rounded-xl" : ""}`}>
+            <div className={`flex flex-col gap-4 ${activeStep === 3 ? "ring-2 ring-[var(--color-brand)]/40 rounded-xl" : ""}`}>
               <ReferralCard
                 result={protocolResult}
                 assessment={assessment}
@@ -262,6 +284,48 @@ export default function ImnciDashboard() {
             </div>
           </div>
         </main>
+
+        {/* Reset Confirmation Modal */}
+        {showResetConfirmModal && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-dialog-title"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in"
+          >
+            <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6 max-w-md w-full shadow-2xl">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-[var(--color-pink-bg)] text-[var(--color-pink)] flex items-center justify-center shrink-0 border border-[var(--color-pink-border)]">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 id="reset-dialog-title" className="text-base font-bold text-[var(--color-text)]">
+                    Start New Clinical Assessment?
+                  </h3>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1 leading-relaxed">
+                    Starting a new encounter will clear current observations and verified clinical parameters. This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[var(--color-border)]">
+                <button
+                  type="button"
+                  onClick={() => setShowResetConfirmModal(false)}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] hover:bg-[var(--color-elevated)] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={performReset}
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-[var(--color-pink)] hover:opacity-90 text-white transition-opacity shadow-sm"
+                >
+                  Confirm &amp; Reset Case
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modals & Drawers */}
         <ReferralHandoffModal

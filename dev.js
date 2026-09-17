@@ -15,6 +15,20 @@ for (let i = 0; i < rawArgs.length; i++) {
   }
 }
 
+const hasHost = mappedArgs.some(
+  (a) => a === "-H" || a === "--hostname" || a.startsWith("--hostname=")
+);
+if (!hasHost) {
+  mappedArgs.push("-H", "0.0.0.0");
+}
+
+const hasPort = mappedArgs.some(
+  (a) => a === "-p" || a === "--port" || a.startsWith("--port=")
+);
+if (!hasPort) {
+  mappedArgs.push("-p", "3000");
+}
+
 const child = spawn("next", ["dev", ...mappedArgs], {
   stdio: "inherit",
   env: process.env,

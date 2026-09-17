@@ -1,52 +1,53 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* ── Design Tokens ── */
-  --color-bg: #060B11;
-  --color-surface: #0D1420;
-  --color-card: #111B28;
-  --color-elevated: #172333;
-  --color-hover: #1C2A3C;
+  /* ── Refined Clinical Design Tokens ── */
+  --color-bg: #0A0F1D;
+  --color-surface: #111A2E;
+  --color-card: #17233B;
+  --color-elevated: #1E2E4A;
+  --color-hover: #243656;
 
-  --color-text: #E8EDF4;
+  --color-text: #F8FAFC;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;
-  --color-text-inverse: #060B11;
+  --color-text-inverse: #0A0F1D;
 
   --color-brand: #2563EB;
   --color-brand-hover: #1D4ED8;
   --color-brand-light: #60A5FA;
+  --color-brand-subtle: rgba(37, 99, 235, 0.12);
 
-  --color-border: rgba(148, 163, 184, 0.12);
-  --color-border-strong: rgba(148, 163, 184, 0.24);
-  --color-border-focus: rgba(37, 99, 235, 0.5);
+  --color-border: rgba(148, 163, 184, 0.16);
+  --color-border-strong: rgba(148, 163, 184, 0.28);
+  --color-border-focus: rgba(59, 130, 246, 0.6);
 
-  /* ── IMNCI Triage ── */
-  --color-pink: #DC2626;
-  --color-pink-bg: rgba(220, 38, 38, 0.08);
-  --color-pink-border: rgba(220, 38, 38, 0.35);
+  /* ── IMNCI Triage Categories ── */
+  --color-pink: #EF4444;
+  --color-pink-bg: rgba(239, 68, 68, 0.12);
+  --color-pink-border: rgba(239, 68, 68, 0.4);
 
-  --color-yellow: #D97706;
-  --color-yellow-bg: rgba(217, 119, 6, 0.08);
-  --color-yellow-border: rgba(217, 119, 6, 0.35);
+  --color-yellow: #F59E0B;
+  --color-yellow-bg: rgba(245, 158, 11, 0.12);
+  --color-yellow-border: rgba(245, 158, 11, 0.4);
 
-  --color-green: #059669;
-  --color-green-bg: rgba(5, 150, 105, 0.08);
-  --color-green-border: rgba(5, 150, 105, 0.35);
+  --color-green: #10B981;
+  --color-green-bg: rgba(16, 185, 129, 0.12);
+  --color-green-border: rgba(16, 185, 129, 0.4);
 
-  --color-amber: #D97706;
-  --color-amber-bg: rgba(217, 119, 6, 0.08);
-  --color-amber-border: rgba(217, 119, 6, 0.35);
+  --color-amber: #F59E0B;
+  --color-amber-bg: rgba(245, 158, 11, 0.12);
+  --color-amber-border: rgba(245, 158, 11, 0.4);
 
   /* ── Fonts ── */
-  --font-heading: var(--font-inter), system-ui, sans-serif;
+  --font-heading: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-sans: var(--font-source-sans), var(--font-inter), system-ui, sans-serif;
   --font-mono: "SF Mono", "Cascadia Code", "Fira Code", monospace;
 }
 
 :root {
-  --background: #060B11;
-  --foreground: #E8EDF4;
+  --background: #0A0F1D;
+  --foreground: #F8FAFC;
 }
 
 *, *::before, *::after {
@@ -66,9 +67,9 @@ body {
   line-height: 1.6;
 }
 
-/* ── Focus ── */
+/* ── Focus States ── */
 :focus-visible {
-  outline: 2px solid var(--color-brand);
+  outline: 2px solid var(--color-brand-light);
   outline-offset: 2px;
 }
 
@@ -86,33 +87,34 @@ body {
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1C2A3C; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #2563EB; }
+::-webkit-scrollbar-thumb { background: #243656; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
 
 /* ── Typography Scale ── */
 .type-display {
   font-family: var(--font-heading);
-  font-size: 1.5rem;
-  line-height: 2rem;
+  font-size: 1.625rem;
+  line-height: 2.125rem;
   font-weight: 800;
   letter-spacing: -0.025em;
 }
 
 .type-h2 {
   font-family: var(--font-heading);
-  font-size: 1.125rem;
-  line-height: 1.5rem;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .type-h3 {
   font-family: var(--font-heading);
-  font-size: 0.9375rem;
-  line-height: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.375rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .type-body {
@@ -123,20 +125,20 @@ body {
 
 .type-small {
   font-size: 0.8125rem;
-  line-height: 1.125rem;
+  line-height: 1.2rem;
   font-weight: 400;
 }
 
 .type-caption {
   font-size: 0.75rem;
-  line-height: 1rem;
-  font-weight: 500;
+  line-height: 1.05rem;
+  font-weight: 600;
 }
 
 .type-label {
   font-size: 0.6875rem;
   line-height: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -169,26 +171,67 @@ body {
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-3px); }
-  40%, 80% { transform: translateX(3px); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
 }
 
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
 }
 
-.animate-fade-in { animation: fade-in 0.25s ease-out forwards; }
+.animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
 .animate-shake { animation: shake 0.35s ease-in-out; }
 .animate-skeleton { animation: skeleton-pulse 1.5s ease-in-out infinite; }
 
 .spinner {
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid rgba(37, 99, 235, 0.15);
-  border-top-color: var(--color-brand);
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  border-top-color: var(--color-brand-light);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
+}
+
+/* ── Print Stylesheet for Clinical Referral Slips ── */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #0F172A !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Hide application chrome */
+  header,
+  nav,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Make modal background transparent and print slip full page */
+  .fixed.inset-0 {
+    position: static !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+    display: block !important;
+  }
+
+  .print-document-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+  }
+
+  .print-slip-paper {
+    border: 1.5pt solid #0F172A !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
 }
 
 /* ── Reduced Motion ── */

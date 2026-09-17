@@ -18,9 +18,14 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "IMNCI-Safe — AI-assisted IMNCI Assessment",
+  title: "IMNCI-Safe",
   description:
-    "AI extracts clinical facts from multilingual notes. A human verifies. Deterministic IMNCI protocol rules decide the classification.",
+    "Protocol-grounded childhood illness classification against the Government of India IMNCI protocol.",
+  openGraph: {
+    title: "IMNCI-Safe",
+    description:
+      "Protocol-grounded childhood illness classification against the Government of India IMNCI protocol.",
+  },
 };
 
 export default function RootLayout({

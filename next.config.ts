@@ -41,6 +41,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   reactStrictMode: true,
   allowedDevOrigins: [
     "*.run.app",
