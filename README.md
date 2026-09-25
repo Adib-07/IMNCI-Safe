@@ -123,7 +123,7 @@ npm run build         # Production build
 
 ### Vercel (Recommended)
 
-Push to GitHub and connect the repository to Vercel. The app uses default Next.js output — no special configuration needed.
+Push to GitHub and connect the repository to Vercel. `next.config.ts` already sets `output: "standalone"`, which Vercel handles automatically — no special configuration needed.
 
 **Environment variables in Vercel dashboard:**
 
@@ -133,7 +133,7 @@ Push to GitHub and connect the repository to Vercel. The app uses default Next.j
 
 ### Docker / Fly.io / Railway
 
-The app supports `output: "standalone"` for container deployment. Add to `next.config.ts`:
+The app supports `output: "standalone"` for container deployment. This is already enabled in `next.config.ts`:
 
 ```ts
 output: "standalone",
@@ -163,7 +163,6 @@ output: "standalone",
 ├── components/           # React UI components
 ├── lib/                  # Core logic (rules engine, types, fixtures)
 │   └── api/              # API layer (validation, errors, AI provider)
-├── public/               # Static assets
 ├── tests/                # Test setup
 ├── .github/workflows/    # CI pipeline
 ├── SECURITY.md           # Security policy
@@ -191,4 +190,4 @@ output: "standalone",
 
 ## License
 
-No license specified. Contact maintainers for usage terms.
+Licensed under the [MIT License](LICENSE).
